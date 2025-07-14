@@ -4,7 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/ShlykovPavel/booker_microservice/internal/config"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/delete_booking_type"
 	create_bookingType "github.com/ShlykovPavel/booker_microservice/internal/server/booking_type_handlers/create"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_type_handlers/get_booking_types_list_handler"
+	get_bookingType_by_id_handler "github.com/ShlykovPavel/booker_microservice/internal/server/booking_type_handlers/get_by_id"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_type_handlers/update_booking_type"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type"
 	users "github.com/ShlykovPavel/booker_microservice/user_service/server/users/create"
@@ -62,6 +66,10 @@ func main() {
 	router.Delete("/users/{id}", users_delete.DeleteUserHandler(logger, userRepository, cfg.ServerTimeout))
 
 	router.Post("/bookingType/create", create_bookingType.CreateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
+	router.Get("/bookingType/{id}", get_bookingType_by_id_handler.GetBookingTypeByIdHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
+	router.Get("/bookingType", get_booking_types_list_handler.GetBookingTypesListHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
+	router.Put("/bookingType/{id}", update_booking_type.UpdateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
+	router.Delete("/bookingType/{id}", delete_booking_type.DeleteBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
 
 	logger.Info("Starting HTTP server", slog.String("adress", cfg.Address))
 	// Run server
