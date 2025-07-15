@@ -1,4 +1,4 @@
-package booking_type
+package booking_type_db
 
 import (
 	"context"
@@ -92,6 +92,7 @@ func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, sea
 	}
 
 	// Сортировка
+	//TODO Изменить сортировку на отдельные query
 	if sort != "" {
 		parts := strings.Split(sort, ":")
 		if len(parts) == 2 && (parts[1] == "asc" || parts[1] == "desc") {
