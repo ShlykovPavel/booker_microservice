@@ -25,9 +25,9 @@ func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_ty
 		var bookingTypeDto create_booking_type.CreateBookingTypeRequest
 		err := body.DecodeAndValidateJson(r, &bookingTypeDto)
 		if err != nil {
-			logger.Error("CreateBookingTypeHandler: error decoding body or validating", err)
+			logger.Error("CreateBookingTypeHandler: error decoding body or validating", "error", err)
 			if errors.Is(err, body.ErrDecodeJSON) {
-				logger.Error("CreateBookingTypeHandler: error decoding body", err)
+				logger.Error("CreateBookingTypeHandler: error decoding body", "error", err)
 				resp.RenderResponse(w, r, http.StatusBadRequest, resp.Error(err.Error()))
 			}
 			if validationErr, ok := err.(validator.ValidationErrors); ok {
@@ -41,7 +41,7 @@ func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_ty
 		}
 		responseDto, err := booking_type_service.CreateBookingType(bookingTypeDto, bookingTypeRepository, ctx, log)
 		if err != nil {
-			logger.Error("CreateBookingTypeHandler: error creating booking type", err)
+			logger.Error("CreateBookingTypeHandler: error creating booking type", "error", err)
 			resp.RenderResponse(w, r, http.StatusInternalServerError, resp.Error(err.Error()))
 			return
 		}

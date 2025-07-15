@@ -78,8 +78,8 @@ func (bt *BookingTypeRepositoryImpl) GetBookingType(ctx context.Context, Booking
 func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, search string, limit, offset int, sort string) (BookingTypeListResult, error) {
 	// Базовый SQL-запрос для пользователей
 	query := "SELECT id, name, description FROM booking_types"
-	countQuery := "SELECT COUNT(*) FROM users"
-	searchQuery := " WHERE first_name ILIKE $1 OR last_name ILIKE $1 OR email ILIKE $1"
+	countQuery := "SELECT COUNT(*) FROM booking_types"
+	searchQuery := " WHERE name ILIKE $1 OR description ILIKE $1"
 	args := []interface{}{}
 	countArgs := []interface{}{}
 
@@ -97,7 +97,7 @@ func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, sea
 		if len(parts) == 2 && (parts[1] == "asc" || parts[1] == "desc") {
 			// Простая проверка допустимых полей
 			switch parts[0] {
-			case "id", "first_name", "last_name", "email", "role", "phone":
+			case "id", "description", "name":
 				query += fmt.Sprintf(" ORDER BY %s %s", parts[0], strings.ToUpper(parts[1]))
 			default:
 				bt.log.Warn("Invalid sort field", slog.String("field", parts[0]))

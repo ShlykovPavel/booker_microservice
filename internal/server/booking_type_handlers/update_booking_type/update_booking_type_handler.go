@@ -41,9 +41,9 @@ func UpdateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_ty
 		var UpdateBookingTypeDto update_booking_type.UpdateBookingTypeRequest
 		err = body.DecodeAndValidateJson(r, &UpdateBookingTypeDto)
 		if err != nil {
-			logger.Error("UpdateBookingTypeHandler: error decoding body or validating", err)
+			logger.Error("UpdateBookingTypeHandler: error decoding body or validating", "error", err)
 			if errors.Is(err, body.ErrDecodeJSON) {
-				logger.Error("UpdateBookingTypeHandler: error decoding body", err)
+				logger.Error("UpdateBookingTypeHandler: error decoding body", "error", err)
 				resp.RenderResponse(w, r, http.StatusBadRequest, resp.Error(err.Error()))
 			}
 			if validationErr, ok := err.(validator.ValidationErrors); ok {

@@ -16,7 +16,7 @@ var ErrDecodeJSON = errors.New("failed to decode JSON")
 func DecodeAndValidateJson(r *http.Request, v interface{}) error {
 	// Декодируем JSON
 	if err := render.DecodeJSON(r.Body, v); err != nil {
-		slog.Default().Error("DecodeAndValidateJson: error decoding body or validating", err)
+		slog.Default().Error("DecodeAndValidateJson: error decoding body or validating", "error", err)
 		return ErrDecodeJSON
 	}
 
