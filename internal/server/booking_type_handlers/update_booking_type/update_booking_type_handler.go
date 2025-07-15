@@ -67,7 +67,7 @@ func UpdateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_ty
 			return
 		}
 		log.Debug("Successfully updated booking type", "id", id)
-		resp.RenderResponse(w, r, http.StatusOK, create_booking_type.CreateBookingTypeResponse{ID: id})
+		resp.RenderResponse(w, r, http.StatusOK, create_booking_type.ResponseId{ID: id})
 
 	}
 }

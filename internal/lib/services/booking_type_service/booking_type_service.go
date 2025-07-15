@@ -13,15 +13,15 @@ import (
 	"strconv"
 )
 
-func CreateBookingType(dto create_booking_type.CreateBookingTypeRequest, bookingTypeDBRepo booking_type.BookingTypeRepository, ctx context.Context, log *slog.Logger) (create_booking_type.CreateBookingTypeResponse, error) {
+func CreateBookingType(dto create_booking_type.CreateBookingTypeRequest, bookingTypeDBRepo booking_type.BookingTypeRepository, ctx context.Context, log *slog.Logger) (create_booking_type.ResponseId, error) {
 	log = log.With(slog.String("op", "internal/lib/services/booking_type_service/booking_type_service.go/CreateBookingType"))
 
 	id, err := bookingTypeDBRepo.CreateBookingType(ctx, dto.Name, dto.Description)
 	if err != nil {
 		log.Error("Ошибка создания типа бронирования", "err", err)
-		return create_booking_type.CreateBookingTypeResponse{}, err
+		return create_booking_type.ResponseId{}, err
 	}
-	return create_booking_type.CreateBookingTypeResponse{
+	return create_booking_type.ResponseId{
 		ID: id,
 	}, nil
 }
@@ -76,7 +76,6 @@ func GetBookingTypeList(log *slog.Logger, bookingTypeDBRepo booking_type.Booking
 		Meta:         metaData,
 	}
 	return bookingTypesDto, nil
-
 }
 
 func UpdateBookingType(log *slog.Logger, bookingTypeDBRepo booking_type.BookingTypeRepository, ctx context.Context, dto update_booking_type.UpdateBookingTypeRequest, id int64) error {

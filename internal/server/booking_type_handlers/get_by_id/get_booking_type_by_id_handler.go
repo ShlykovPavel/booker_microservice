@@ -46,6 +46,5 @@ func GetBookingTypeByIdHandler(log *slog.Logger, bookingTypeRepository booking_t
 		log.Debug("Successful get user by id", "user", bookingTypeInfo)
 		resp.RenderResponse(w, r, http.StatusOK, bookingTypeInfo)
 		return
-
 	}
 }
