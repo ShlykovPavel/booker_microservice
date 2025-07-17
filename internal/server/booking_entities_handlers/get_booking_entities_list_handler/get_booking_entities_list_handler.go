@@ -20,7 +20,11 @@ func GetBookingEntitiesListHandler(logger *slog.Logger, bookingEntityRepository 
 		defer cancel()
 
 		requestQuery := r.URL.Query()
-		parsedQuery, err := query_params.ParseStandardQueryParams(requestQuery, log)
+
+		queryParser := &query_params.DefaultSortParser{
+			ValidSortFields: []string{"id", "booking_type_id", "name", "description", "status"},
+		}
+		parsedQuery, err := query_params.ParseStandardQueryParams(requestQuery, log, queryParser)
 		if err != nil {
 			log.Error("Ошибка парсинга параметров", "error", err, "request", requestQuery)
 			resp.RenderResponse(w, r, http.StatusBadRequest, resp.Error("Ошибка параметров запроса"))

@@ -19,7 +19,11 @@ func GetBookingTypesListHandler(logger *slog.Logger, bookingTypeRepository booki
 		ctx, cancel := context.WithTimeout(r.Context(), timeout)
 		defer cancel()
 		requestQuery := r.URL.Query()
-		parsedQuery, err := query_params.ParseStandardQueryParams(requestQuery, log)
+
+		queryParser := &query_params.DefaultSortParser{
+			ValidSortFields: []string{"id", "name", "description"},
+		}
+		parsedQuery, err := query_params.ParseStandardQueryParams(requestQuery, log, queryParser)
 		if err != nil {
 			log.Error("Ошибка парсинга параметров", "error", err, "request", requestQuery)
 			resp.RenderResponse(w, r, http.StatusBadRequest, resp.Error("Ошибка параметров запроса"))

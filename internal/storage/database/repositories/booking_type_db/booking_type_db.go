@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -16,7 +17,7 @@ var ErrBookingTypeNotFound = errors.New("Тип бронирования не н
 type BookingTypeRepository interface {
 	CreateBookingType(ctx context.Context, name, description string) (int64, error)
 	GetBookingType(ctx context.Context, BookingTypeId int64) (BookingTypeInfo, error)
-	GetBookingTypeList(ctx context.Context, search string, limit, offset int, sort string) (BookingTypeListResult, error)
+	GetBookingTypeList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingTypeListResult, error)
 	UpdateBookingType(ctx context.Context, id int64, name, description string) error
 	DeleteBookingType(ctx context.Context, id int64) error
 }
@@ -75,7 +76,7 @@ func (bt *BookingTypeRepositoryImpl) GetBookingType(ctx context.Context, Booking
 	return bookingType, nil
 }
 
-func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, search string, limit, offset int, sort string) (BookingTypeListResult, error) {
+func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingTypeListResult, error) {
 	// Базовый SQL-запрос для пользователей
 	query := "SELECT id, name, description FROM booking_types"
 	countQuery := "SELECT COUNT(*) FROM booking_types"
@@ -93,21 +94,16 @@ func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, sea
 
 	// Сортировка
 	//TODO Изменить сортировку на отдельные query
-	if sort != "" {
-		parts := strings.Split(sort, ":")
-		if len(parts) == 2 && (parts[1] == "asc" || parts[1] == "desc") {
-			// Простая проверка допустимых полей
-			switch parts[0] {
-			case "id", "description", "name":
-				query += fmt.Sprintf(" ORDER BY %s %s", parts[0], strings.ToUpper(parts[1]))
-			default:
-				bt.log.Warn("Invalid sort field", slog.String("field", parts[0]))
-				return BookingTypeListResult{}, fmt.Errorf("invalid sort field: %s", parts[0])
-			}
-		} else {
-			bt.log.Warn("Invalid sort format", slog.String("sort", sort))
-			return BookingTypeListResult{}, fmt.Errorf("invalid sort format: %s", sort)
+	var orderBy []string
+	if len(sortParams) > 0 {
+		for _, sortParam := range sortParams {
+			orderBy = append(orderBy, fmt.Sprintf("%s %s", sortParam.Field, strings.ToUpper(sortParam.Order)))
 		}
+		query += " ORDER BY " + strings.Join(orderBy, ", ")
+
+	} else {
+		// Дефолтная сортировка
+		query += " ORDER BY id ASC"
 	}
 
 	// Пагинация
@@ -139,7 +135,7 @@ func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, sea
 		}
 		BookingTypes = append(BookingTypes, BookingType)
 	}
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		bt.log.Error("Error reading rows", slog.Any("error", err))
 		return BookingTypeListResult{}, fmt.Errorf("error reading rows: %w", err)
 	}

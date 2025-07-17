@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -16,7 +17,7 @@ var ErrBookingEntityNotFound = errors.New("Объект бронирования
 type BookingEntityRepository interface {
 	CreateBookingEntity(ctx context.Context, bookingTypeId int64, name, description, status string, ParentId int64) (int64, error)
 	GetBookingEntity(ctx context.Context, BookingEntityId int64) (BookingEntityInfo, error)
-	GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sort string) (BookingEntityListResult, error)
+	GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingEntityListResult, error)
 	UpdateBookingEntity(ctx context.Context, id int64, bookingTypeId int64, name, description, status string, ParentId int64) error
 	DeleteBookingEntity(ctx context.Context, id int64) error
 }
@@ -80,7 +81,7 @@ func (be *BookingEntityRepositoryImpl) GetBookingEntity(ctx context.Context, Boo
 	return bookingEntity, nil
 }
 
-func (be *BookingEntityRepositoryImpl) GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sort string) (BookingEntityListResult, error) {
+func (be *BookingEntityRepositoryImpl) GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingEntityListResult, error) {
 	// Базовый SQL-запрос для пользователей
 	query := "SELECT id, booking_type_id, name, description, status, parent_id FROM booking_entities"
 	countQuery := "SELECT COUNT(*) FROM booking_entities"
@@ -98,21 +99,16 @@ func (be *BookingEntityRepositoryImpl) GetBookingEntitiesList(ctx context.Contex
 	}
 
 	// Сортировка
-	if sort != "" {
-		parts := strings.Split(sort, ":")
-		if len(parts) == 2 && (parts[1] == "asc" || parts[1] == "desc") {
-			// Простая проверка допустимых полей
-			switch parts[0] {
-			case "id", "description", "name":
-				query += fmt.Sprintf(" ORDER BY %s %s", parts[0], strings.ToUpper(parts[1]))
-			default:
-				be.log.Warn("Invalid sort field", slog.String("field", parts[0]))
-				return BookingEntityListResult{}, fmt.Errorf("invalid sort field: %s", parts[0])
-			}
-		} else {
-			be.log.Warn("Invalid sort format", slog.String("sort", sort))
-			return BookingEntityListResult{}, fmt.Errorf("invalid sort format: %s", sort)
+	var orderBy []string
+	if len(sortParams) > 0 {
+		for _, sortParam := range sortParams {
+			orderBy = append(orderBy, fmt.Sprintf("%s %s", sortParam.Field, strings.ToUpper(sortParam.Order)))
 		}
+		query += " ORDER BY " + strings.Join(orderBy, ", ")
+
+	} else {
+		// Дефолтная сортировка
+		query += " ORDER BY id ASC"
 	}
 
 	// Пагинация

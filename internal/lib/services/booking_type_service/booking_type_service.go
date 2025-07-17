@@ -47,11 +47,11 @@ func GetBookingTypeById(id int64, bookingTypeDBRepo booking_type_db.BookingTypeR
 	}, nil
 }
 
-func GetBookingTypeList(log *slog.Logger, bookingTypeDBRepo booking_type_db.BookingTypeRepository, ctx context.Context, queryParams query_params.ListUsersParams) (get_booking_type_list.BookingTypeList, error) {
+func GetBookingTypeList(log *slog.Logger, bookingTypeDBRepo booking_type_db.BookingTypeRepository, ctx context.Context, queryParams query_params.ListQueryParams) (get_booking_type_list.BookingTypeList, error) {
 	const op = "internal/lib/services/user_service/user_service.go/GetUserList"
 	log = log.With(slog.String("op", op))
 
-	result, err := bookingTypeDBRepo.GetBookingTypeList(ctx, queryParams.Search, queryParams.Limit, queryParams.Offset, queryParams.Sort)
+	result, err := bookingTypeDBRepo.GetBookingTypeList(ctx, queryParams.Search, queryParams.Limit, queryParams.Offset, queryParams.SortParams)
 	if err != nil {
 		log.Error("Failed to get users list", "err", err)
 		return get_booking_type_list.BookingTypeList{}, err

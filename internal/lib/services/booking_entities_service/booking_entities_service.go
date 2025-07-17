@@ -61,11 +61,11 @@ func GetBookingEntityById(id int64, bookingEntityDBRepo booking_entity_db.Bookin
 	}, nil
 }
 
-func GetBookingEntitiesList(log *slog.Logger, bookingEntityDBRepo booking_entity_db.BookingEntityRepository, ctx context.Context, queryParams query_params.ListUsersParams) (get_booking_entities_list.BookingEntityList, error) {
+func GetBookingEntitiesList(log *slog.Logger, bookingEntityDBRepo booking_entity_db.BookingEntityRepository, ctx context.Context, queryParams query_params.ListQueryParams) (get_booking_entities_list.BookingEntityList, error) {
 	const op = "internal/lib/services/booking_entities_service/booking_entities_service.go/GetBookingEntitiesList"
 	log = log.With(slog.String("op", op))
 
-	result, err := bookingEntityDBRepo.GetBookingEntitiesList(ctx, queryParams.Search, queryParams.Limit, queryParams.Offset, queryParams.Sort)
+	result, err := bookingEntityDBRepo.GetBookingEntitiesList(ctx, queryParams.Search, queryParams.Limit, queryParams.Offset, queryParams.SortParams)
 	if err != nil {
 		log.Error("Failed to get booking entities list", "err", err)
 		return get_booking_entities_list.BookingEntityList{}, err

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/create_user"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	users "github.com/ShlykovPavel/booker_microservice/user_service/server/users/create"
 	"github.com/ShlykovPavel/booker_microservice/user_service/storage/repositories/users_db"
 	"github.com/go-chi/chi/v5/middleware"
@@ -39,7 +40,7 @@ func (m *MockUserRepository) AddFirstAdmin(ctx context.Context, passwordHash str
 	args := m.Called(ctx, passwordHash)
 	return args.Error(1)
 }
-func (m *MockUserRepository) GetUserList(ctx context.Context, search string, limit, offset int, sort string) (users_db.UserListResult, error) {
+func (m *MockUserRepository) GetUserList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (users_db.UserListResult, error) {
 	args := m.Called(ctx)
 	return args.Get(0).(users_db.UserListResult), args.Error(1)
 }
