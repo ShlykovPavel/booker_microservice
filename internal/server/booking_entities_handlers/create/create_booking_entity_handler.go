@@ -1,0 +1,52 @@
+package create_bookingEntity_handler
+
+import (
+	"context"
+	"errors"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/body"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/create_booking_entity"
+	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_entities_service"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
+	"github.com/go-playground/validator"
+	"log/slog"
+	"net/http"
+	"time"
+)
+
+func CreateBookingEntityHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, bookingEntityRepository booking_entity_db.BookingEntityRepository, timeout time.Duration) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logger := slog.With(
+			slog.String("op", "internal/server/booking_entities_handlers/create/create_booking_entity_handler.go/CreateBookingEntityHandler"))
+
+		ctx, cancel := context.WithTimeout(r.Context(), timeout)
+		defer cancel()
+
+		var bookingEntityDto create_booking_entity.BookingEntity
+		err := body.DecodeAndValidateJson(r, &bookingEntityDto)
+		if err != nil {
+			logger.Error("CreateBookingEntityHandler: error decoding body or validating", "error", err)
+			if errors.Is(err, body.ErrDecodeJSON) {
+				logger.Error("CreateBookingEntityHandler: error decoding body", "error", err)
+				resp.RenderResponse(w, r, http.StatusBadRequest, resp.Error(err.Error()))
+			}
+			if validationErr, ok := err.(validator.ValidationErrors); ok {
+				logger.Error("Error validating request body", "err", validationErr)
+				resp.RenderResponse(w, r, http.StatusBadRequest, resp.ValidationError(validationErr))
+				return
+			}
+			logger.Error("Unexpected error", "err", err)
+			resp.RenderResponse(w, r, http.StatusInternalServerError, resp.Error("internal server error"))
+			return
+		}
+		responseDto, err := booking_entities_service.CreateBookingEntity(bookingEntityDto, bookingTypeRepository, bookingEntityRepository, ctx, log)
+		if err != nil {
+			logger.Error("CreateBookingEntityHandler: error creating booking entity", "error", err)
+			resp.RenderResponse(w, r, http.StatusInternalServerError, resp.Error(err.Error()))
+			return
+		}
+		logger.Debug("CreateBookingEntityHandler: created booking entity", "response", responseDto)
+		resp.RenderResponse(w, r, http.StatusCreated, responseDto)
+	}
+}

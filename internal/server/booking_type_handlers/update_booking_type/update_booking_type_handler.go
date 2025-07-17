@@ -8,7 +8,7 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/update_booking_type"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_type_service"
-	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
 	"log/slog"
@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func UpdateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_type.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
+func UpdateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "internal/server/booking_type_handlers/update_booking_type/update_booking_type_handler.go/UpdateBookingTypeHandler"
 		logger := log.With(slog.String("op", op))
@@ -58,7 +58,7 @@ func UpdateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_ty
 
 		err = booking_type_service.UpdateBookingType(log, bookingTypeRepository, ctx, UpdateBookingTypeDto, id)
 		if err != nil {
-			if errors.Is(err, booking_type.ErrBookingTypeNotFound) {
+			if errors.Is(err, booking_type_db.ErrBookingTypeNotFound) {
 				resp.RenderResponse(w, r, http.StatusNotFound, resp.Error(err.Error()))
 				return
 			}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/create_user"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -19,7 +20,7 @@ var ErrUserNotFound = errors.New("Пользователь не найден ")
 type UserRepository interface {
 	CreateUser(ctx context.Context, userinfo *create_user.UserCreate) (int64, error)
 	GetUser(ctx context.Context, userId int64) (UserInfo, error)
-	GetUserList(ctx context.Context, search string, limit, offset int, sort string) (UserListResult, error)
+	GetUserList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (UserListResult, error)
 	CheckAdminInDB(ctx context.Context) (UserInfo, error)
 	AddFirstAdmin(ctx context.Context, passwordHash string) error
 	UpdateUser(ctx context.Context, id int64, firstName, lastName, email, phone, role string) error
@@ -104,7 +105,7 @@ func (us *UserRepositoryImpl) GetUser(ctx context.Context, userId int64) (UserIn
 	return user, nil
 }
 
-func (us *UserRepositoryImpl) GetUserList(ctx context.Context, search string, limit, offset int, sort string) (UserListResult, error) {
+func (us *UserRepositoryImpl) GetUserList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (UserListResult, error) {
 	// Базовый SQL-запрос для пользователей
 	query := "SELECT id, first_name, last_name, email, role, phone FROM users"
 	countQuery := "SELECT COUNT(*) FROM users"
@@ -121,21 +122,16 @@ func (us *UserRepositoryImpl) GetUserList(ctx context.Context, search string, li
 	}
 
 	// Сортировка
-	if sort != "" {
-		parts := strings.Split(sort, ":")
-		if len(parts) == 2 && (parts[1] == "asc" || parts[1] == "desc") {
-			// Простая проверка допустимых полей
-			switch parts[0] {
-			case "id", "first_name", "last_name", "email", "role", "phone":
-				query += fmt.Sprintf(" ORDER BY %s %s", parts[0], strings.ToUpper(parts[1]))
-			default:
-				us.log.Warn("Invalid sort field", slog.String("field", parts[0]))
-				return UserListResult{}, fmt.Errorf("invalid sort field: %s", parts[0])
-			}
-		} else {
-			us.log.Warn("Invalid sort format", slog.String("sort", sort))
-			return UserListResult{}, fmt.Errorf("invalid sort format: %s", sort)
+	var orderBy []string
+	if len(sortParams) > 0 {
+		for _, sortParam := range sortParams {
+			orderBy = append(orderBy, fmt.Sprintf("%s %s", sortParam.Field, strings.ToUpper(sortParam.Order)))
 		}
+		query += " ORDER BY " + strings.Join(orderBy, ", ")
+
+	} else {
+		// Дефолтная сортировка
+		query += " ORDER BY id ASC"
 	}
 
 	// Пагинация
@@ -144,6 +140,7 @@ func (us *UserRepositoryImpl) GetUserList(ctx context.Context, search string, li
 
 	// Подсчёт total
 	var total int64
+	us.log.Debug("SQL query for get total", "query", query)
 	err := us.db.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
 	if err != nil {
 		us.log.Error("Failed to count users", slog.Any("error", err))
@@ -151,6 +148,7 @@ func (us *UserRepositoryImpl) GetUserList(ctx context.Context, search string, li
 	}
 
 	// Получение пользователей
+	us.log.Debug("SQL query for get list", "query", query)
 	rows, err := us.db.Query(ctx, query, args...)
 	if err != nil {
 		us.log.Error("Failed to query users", slog.Any("error", err))
@@ -167,7 +165,7 @@ func (us *UserRepositoryImpl) GetUserList(ctx context.Context, search string, li
 		}
 		users = append(users, user)
 	}
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		us.log.Error("Error reading rows", slog.Any("error", err))
 		return UserListResult{}, fmt.Errorf("error reading rows: %w", err)
 	}

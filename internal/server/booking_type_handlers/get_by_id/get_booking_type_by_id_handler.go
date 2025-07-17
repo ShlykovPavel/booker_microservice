@@ -5,7 +5,7 @@ import (
 	"errors"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_type_service"
-	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
 	"net/http"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func GetBookingTypeByIdHandler(log *slog.Logger, bookingTypeRepository booking_type.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
+func GetBookingTypeByIdHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := slog.With(
 			slog.String("op", "internal/server/booking_type_handlers/get_by_id/get_booking_type_by_id_handler.go/GetBookingTypeByIdHandler"))
@@ -35,7 +35,7 @@ func GetBookingTypeByIdHandler(log *slog.Logger, bookingTypeRepository booking_t
 
 		bookingTypeInfo, err := booking_type_service.GetBookingTypeById(id, bookingTypeRepository, ctx, logger)
 		if err != nil {
-			if errors.Is(err, booking_type.ErrBookingTypeNotFound) {
+			if errors.Is(err, booking_type_db.ErrBookingTypeNotFound) {
 				resp.RenderResponse(w, r, http.StatusNotFound, resp.Error("Booking type not found"))
 				return
 			}

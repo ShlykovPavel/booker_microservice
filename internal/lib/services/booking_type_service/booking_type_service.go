@@ -8,12 +8,12 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/get_booking_type_list"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/update_booking_type"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
-	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
 	"log/slog"
 	"strconv"
 )
 
-func CreateBookingType(dto create_booking_type.CreateBookingTypeRequest, bookingTypeDBRepo booking_type.BookingTypeRepository, ctx context.Context, log *slog.Logger) (create_booking_type.ResponseId, error) {
+func CreateBookingType(dto create_booking_type.CreateBookingTypeRequest, bookingTypeDBRepo booking_type_db.BookingTypeRepository, ctx context.Context, log *slog.Logger) (create_booking_type.ResponseId, error) {
 	log = log.With(slog.String("op", "internal/lib/services/booking_type_service/booking_type_service.go/CreateBookingType"))
 
 	id, err := bookingTypeDBRepo.CreateBookingType(ctx, dto.Name, dto.Description)
@@ -26,14 +26,14 @@ func CreateBookingType(dto create_booking_type.CreateBookingTypeRequest, booking
 	}, nil
 }
 
-func GetBookingTypeById(id int64, bookingTypeDBRepo booking_type.BookingTypeRepository, ctx context.Context, log *slog.Logger) (get_booking_type_by_id.GetBookingTypeResponse, error) {
+func GetBookingTypeById(id int64, bookingTypeDBRepo booking_type_db.BookingTypeRepository, ctx context.Context, log *slog.Logger) (get_booking_type_by_id.GetBookingTypeResponse, error) {
 	const op = "internal/lib/services/booking_type_service/booking_type_service.go/GetBookingTypeById"
 	log = log.With(slog.String("op", op),
 		slog.String("UserId", strconv.FormatInt(id, 10)))
 
 	BookingType, err := bookingTypeDBRepo.GetBookingType(ctx, id)
 	if err != nil {
-		if errors.Is(err, booking_type.ErrBookingTypeNotFound) {
+		if errors.Is(err, booking_type_db.ErrBookingTypeNotFound) {
 			log.Debug("Тип бронирования не найден", "err", err)
 			return get_booking_type_by_id.GetBookingTypeResponse{}, err
 		}
@@ -47,11 +47,11 @@ func GetBookingTypeById(id int64, bookingTypeDBRepo booking_type.BookingTypeRepo
 	}, nil
 }
 
-func GetBookingTypeList(log *slog.Logger, bookingTypeDBRepo booking_type.BookingTypeRepository, ctx context.Context, queryParams query_params.ListUsersParams) (get_booking_type_list.BookingTypeList, error) {
+func GetBookingTypeList(log *slog.Logger, bookingTypeDBRepo booking_type_db.BookingTypeRepository, ctx context.Context, queryParams query_params.ListQueryParams) (get_booking_type_list.BookingTypeList, error) {
 	const op = "internal/lib/services/user_service/user_service.go/GetUserList"
 	log = log.With(slog.String("op", op))
 
-	result, err := bookingTypeDBRepo.GetBookingTypeList(ctx, queryParams.Search, queryParams.Limit, queryParams.Offset, queryParams.Sort)
+	result, err := bookingTypeDBRepo.GetBookingTypeList(ctx, queryParams.Search, queryParams.Limit, queryParams.Offset, queryParams.SortParams)
 	if err != nil {
 		log.Error("Failed to get users list", "err", err)
 		return get_booking_type_list.BookingTypeList{}, err
@@ -78,7 +78,7 @@ func GetBookingTypeList(log *slog.Logger, bookingTypeDBRepo booking_type.Booking
 	return bookingTypesDto, nil
 }
 
-func UpdateBookingType(log *slog.Logger, bookingTypeDBRepo booking_type.BookingTypeRepository, ctx context.Context, dto update_booking_type.UpdateBookingTypeRequest, id int64) error {
+func UpdateBookingType(log *slog.Logger, bookingTypeDBRepo booking_type_db.BookingTypeRepository, ctx context.Context, dto update_booking_type.UpdateBookingTypeRequest, id int64) error {
 	const op = "internal/lib/services/booking_type_service/booking_type_service.go/UpdateBookingType"
 	log = log.With(slog.String("op", op),
 		slog.String("UserId", strconv.FormatInt(id, 10)))
@@ -91,7 +91,7 @@ func UpdateBookingType(log *slog.Logger, bookingTypeDBRepo booking_type.BookingT
 	return nil
 }
 
-func DeleteBookingType(log *slog.Logger, bookingTypeDBRepo booking_type.BookingTypeRepository, ctx context.Context, id int64) error {
+func DeleteBookingType(log *slog.Logger, bookingTypeDBRepo booking_type_db.BookingTypeRepository, ctx context.Context, id int64) error {
 	const op = "internal/lib/services/booking_type_service/booking_type_service.go/DeleteBookingType"
 	log = log.With(slog.String("op", op),
 		slog.String("UserId", strconv.FormatInt(id, 10)))
