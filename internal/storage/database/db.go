@@ -78,6 +78,10 @@ func CreatePool(ctx context.Context, config *DbConfig, logger *slog.Logger) (*pg
 	connConfig.MaxConnLifetime = time.Hour        // Максимальное время жизни соединения
 	connConfig.MaxConnIdleTime = 30 * time.Minute // Время бездействия перед закрытием
 	connConfig.HealthCheckPeriod = time.Minute    // Период проверки жизни соединения с БД
+	connConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		_, err = conn.Exec(ctx, "SET TIME ZONE 'UTC'")
+		return err
+	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, connConfig)
 	if err != nil {

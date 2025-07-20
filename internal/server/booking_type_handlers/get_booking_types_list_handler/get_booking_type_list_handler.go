@@ -18,6 +18,7 @@ func GetBookingTypesListHandler(logger *slog.Logger, bookingTypeRepository booki
 
 		ctx, cancel := context.WithTimeout(r.Context(), timeout)
 		defer cancel()
+
 		requestQuery := r.URL.Query()
 
 		queryParser := &query_params.DefaultSortParser{

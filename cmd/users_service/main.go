@@ -4,6 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/ShlykovPavel/booker_microservice/internal/config"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/middlewares"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/create_booking"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/delete_booking"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/get_booking_by_booking_entity"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/get_booking_by_id"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/get_booking_by_time"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/get_my_booking"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/update_booking"
 	create_bookingEntity_handler "github.com/ShlykovPavel/booker_microservice/internal/server/booking_entities_handlers/create"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_entities_handlers/delete_booking_entity"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_entities_handlers/get_booking_entities_list_handler"
@@ -15,6 +23,7 @@ import (
 	get_bookingType_by_id_handler "github.com/ShlykovPavel/booker_microservice/internal/server/booking_type_handlers/get_by_id"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_type_handlers/update_booking_type"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
 	users "github.com/ShlykovPavel/booker_microservice/user_service/server/users/create"
@@ -59,6 +68,7 @@ func main() {
 	userRepository := users_db.NewUsersDB(poll, logger)
 	bookerTypeRepository := booking_type_db.NewBookingTypeRepository(poll, logger)
 	bookerEntityRepository := booking_entity_db.NewBookingEntityRepository(poll, logger)
+	bookingRepository := booking_db.NewBookingRepository(poll, logger)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -83,6 +93,17 @@ func main() {
 	router.Get("/bookingEntity", get_booking_entities_list_handler.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
 	router.Put("/bookingEntity/{id}", update_booking_entity.UpdateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
 	router.Delete("/bookingEntity/{id}", delete_booking_entity.DeleteBookingEntityHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
+
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.AuthMiddleware(cfg.JWTSecretKey, logger))
+		r.Post("/booking", create_booking.CreateBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
+		r.Get("/bookings/my", get_my_booking.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
+	})
+	router.Get("/bookings", get_booking_by_time.GetBookingByTimeHandler(logger, bookingRepository, cfg.ServerTimeout))
+	router.Get("/bookingEntity/{id}/bookings", get_booking_by_booking_entity.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
+	router.Get("/booking/{id}", get_booking_by_id.GetBookingByIdHandler(logger, bookingRepository, cfg.ServerTimeout))
+	router.Put("/booking/{id}", update_booking.UpdateBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
+	router.Delete("/booking/{id}", delete_booking.DeleteBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
 
 	logger.Info("Starting HTTP server", slog.String("adress", cfg.Address))
 	// Run server
