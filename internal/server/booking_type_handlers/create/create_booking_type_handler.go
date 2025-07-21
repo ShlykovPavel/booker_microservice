@@ -7,14 +7,14 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/create_booking_type"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_type_service"
-	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
 	"github.com/go-playground/validator"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
-func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_type.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
+func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := slog.With(
 			slog.String("op", "internal/server/booking_type_handlers/create/create_booking_type_handler.go/CreateBookingTypeHandler"))
