@@ -88,7 +88,7 @@ func main() {
 	router.Put("/bookingType/{id}", update_booking_type.UpdateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
 	router.Delete("/bookingType/{id}", delete_booking_type.DeleteBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
 
-	router.Post("/bookingEntity/create", create_bookingEntity_handler.CreateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
+	router.Post("/bookingEntity", create_bookingEntity_handler.CreateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
 	router.Get("/bookingEntity/{id}", get_bookingEntity_by_id_handler.GetBookingEntityByIdHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
 	router.Get("/bookingEntity", get_booking_entities_list_handler.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
 	router.Put("/bookingEntity/{id}", update_booking_entity.UpdateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
