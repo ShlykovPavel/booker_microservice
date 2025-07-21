@@ -85,7 +85,6 @@ func (be *BookingEntityRepositoryImpl) GetBookingEntitiesList(ctx context.Contex
 	// Базовый SQL-запрос для пользователей
 	query := "SELECT id, booking_type_id, name, description, status, parent_id FROM booking_entities"
 	countQuery := "SELECT COUNT(*) FROM booking_entities"
-	//TODO Сделать сортировку как отдельные query
 	searchQuery := " WHERE name ILIKE $1 OR description ILIKE $1"
 	args := []interface{}{}
 	countArgs := []interface{}{}
@@ -135,8 +134,8 @@ func (be *BookingEntityRepositoryImpl) GetBookingEntitiesList(ctx context.Contex
 	for rows.Next() {
 		var BookingEntity BookingEntityInfo
 		if err = rows.Scan(&BookingEntity.ID, &BookingEntity.BookingTypeID, &BookingEntity.Name, &BookingEntity.Description, &BookingEntity.Status, &BookingEntity.ParentID); err != nil {
-			be.log.Error("Error scanning user row", slog.Any("error", err))
-			return BookingEntityListResult{}, fmt.Errorf("error scanning user row: %w", err)
+			be.log.Error("Error scanning booking entity row", slog.Any("error", err))
+			return BookingEntityListResult{}, fmt.Errorf("error scanning booking entity row: %w", err)
 		}
 		BookingEntities = append(BookingEntities, BookingEntity)
 	}
