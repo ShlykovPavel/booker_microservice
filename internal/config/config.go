@@ -18,6 +18,7 @@ type Config struct {
 	JWTSecretKey  string        `yaml:"jwt_secret_key" env:"JWT_SECRET_KEY" env-required:"true"`
 	JWTDuration   time.Duration `yaml:"jwt_duration"  env:"JWT_DURATION" env-default:"5m"`
 	ServerTimeout time.Duration `yaml:"server_timeout" env:"SERVER_TIMEOUT" env-default:"10s"`
+	GRPCPort      int           `yaml:"grpc_port" env:"GRPC_PORT" env-default:"440044"`
 }
 
 // LoadConfig загружает конфигурацию из файла и переменных окружения

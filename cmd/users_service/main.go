@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/ShlykovPavel/booker_microservice/internal/app"
 	"github.com/ShlykovPavel/booker_microservice/internal/config"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/middlewares"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/create_booking"
@@ -64,6 +65,12 @@ func main() {
 	}
 
 	poll, err := database.CreatePool(context.Background(), &dbConfig, logger)
+
+	application := app.NewApp(logger, cfg.GRPCPort, "", cfg.ServerTimeout)
+	err = application.GRPCServer.Run()
+	if err != nil {
+		panic(err)
+	}
 
 	userRepository := users_db.NewUsersDB(poll, logger)
 	bookerTypeRepository := booking_type_db.NewBookingTypeRepository(poll, logger)
