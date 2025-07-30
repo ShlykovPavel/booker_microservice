@@ -26,6 +26,7 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/company_db"
 	users "github.com/ShlykovPavel/booker_microservice/user_service/server/users/create"
 	users_delete "github.com/ShlykovPavel/booker_microservice/user_service/server/users/delete"
 	"github.com/ShlykovPavel/booker_microservice/user_service/server/users/get_user"
@@ -69,6 +70,7 @@ func main() {
 	bookerTypeRepository := booking_type_db.NewBookingTypeRepository(poll, logger)
 	bookerEntityRepository := booking_entity_db.NewBookingEntityRepository(poll, logger)
 	bookingRepository := booking_db.NewBookingRepository(poll, logger)
+	companyRepository := company_db.NewCompanyRepository(poll, logger)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -84,8 +86,6 @@ func main() {
 
 	router.Group(func(r chi.Router) {
 		r.Use(middlewares.AuthMiddleware(cfg.JWTSecretKey, logger))
-		r.Post("/booking", create_booking.CreateBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
-		r.Get("/bookings/my", get_my_booking.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
 
 		r.Post("/bookingType", create_bookingType.CreateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
 		r.Get("/bookingType/{id}", get_bookingType_by_id_handler.GetBookingTypeByIdHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
@@ -98,6 +98,9 @@ func main() {
 		r.Get("/bookingEntity", get_booking_entities_list_handler.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
 		r.Put("/bookingEntity/{id}", update_booking_entity.UpdateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
 		r.Delete("/bookingEntity/{id}", delete_booking_entity.DeleteBookingEntityHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
+
+		r.Post("/booking", create_booking.CreateBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
+		r.Get("/bookings/my", get_my_booking.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
 	})
 	router.Get("/bookings", get_booking_by_time.GetBookingByTimeHandler(logger, bookingRepository, cfg.ServerTimeout))
 	router.Get("/bookingEntity/{id}/bookings", get_booking_by_booking_entity.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
