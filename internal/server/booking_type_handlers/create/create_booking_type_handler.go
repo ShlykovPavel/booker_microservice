@@ -8,21 +8,16 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/create_booking_type"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_type_service"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/services_models"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/company_db"
 	"github.com/go-playground/validator"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
-type CreateBookingTypeDTO struct {
-	Name        string `json:"name" validate:"required"`
-	Description string `json:"description"`
-	CompanyId   int64  `json:"company_id" validate:"required"`
-	CompanyName string `json:"company_name" validate:"required"`
-}
-
-func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
+func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration, companyDbRepo company_db.CompanyRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := slog.With(
 			slog.String("op", "internal/server/booking_type_handlers/create/create_booking_type_handler.go/CreateBookingTypeHandler"))
@@ -49,7 +44,7 @@ func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_ty
 		}
 		claims := helpers.ExtractTokenClaims(ctx, log, w, r)
 
-		createDto := CreateBookingTypeDTO{
+		createDto := services_models.CreateBookingTypeDTO{
 			Name:        bookingTypeDto.Name,
 			Description: bookingTypeDto.Description,
 			CompanyId:   claims.CompanyId,
@@ -58,7 +53,7 @@ func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_ty
 
 		log.Debug("CreateBookingTypeHandler: create booking type", "create", createDto)
 
-		responseDto, err := booking_type_service.CreateBookingType(bookingTypeDto, bookingTypeRepository, ctx, log)
+		responseDto, err := booking_type_service.CreateBookingType(createDto, bookingTypeRepository, ctx, log, companyDbRepo)
 		if err != nil {
 			logger.Error("CreateBookingTypeHandler: error creating booking type", "error", err)
 			resp.RenderResponse(w, r, http.StatusInternalServerError, resp.Error(err.Error()))

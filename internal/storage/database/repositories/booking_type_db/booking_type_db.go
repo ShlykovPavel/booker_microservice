@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/services_models"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,7 +16,7 @@ import (
 var ErrBookingTypeNotFound = errors.New("Тип бронирования не найден ")
 
 type BookingTypeRepository interface {
-	CreateBookingType(ctx context.Context, name, description string) (int64, error)
+	CreateBookingType(ctx context.Context, dto services_models.CreateBookingTypeDTO) (int64, error)
 	GetBookingType(ctx context.Context, BookingTypeId int64) (BookingTypeInfo, error)
 	GetBookingTypeList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingTypeListResult, error)
 	UpdateBookingType(ctx context.Context, id int64, name, description string) error
@@ -43,11 +44,11 @@ func NewBookingTypeRepository(db *pgxpool.Pool, log *slog.Logger) *BookingTypeRe
 	}
 }
 
-func (bt *BookingTypeRepositoryImpl) CreateBookingType(ctx context.Context, name, description string) (int64, error) {
-	query := `INSERT INTO booking_types (name, description) VALUES ($1, $2) RETURNING id`
+func (bt *BookingTypeRepositoryImpl) CreateBookingType(ctx context.Context, dto services_models.CreateBookingTypeDTO) (int64, error) {
+	query := `INSERT INTO booking_types (name, description, company_id) VALUES ($1, $2, $3) RETURNING id`
 
 	var id int64
-	err := bt.dbPoll.QueryRow(ctx, query, name, description).Scan(&id)
+	err := bt.dbPoll.QueryRow(ctx, query, dto.Name, dto.Description, dto.CompanyId).Scan(&id)
 	if err != nil {
 		dbErr := database.PsqlErrorHandler(err)
 		bt.log.Error("Failed to create booking type", "error", err)
