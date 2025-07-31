@@ -104,7 +104,7 @@ func main() {
 	router.Group(func(e chi.Router) {
 		e.Use(middlewares.AuthMiddleware(cfg.JWTSecretKey, logger))
 
-		e.Post("/booking", create_booking.CreateBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
+		e.Post("/booking", create_booking.CreateBookingHandler(logger, bookingRepository, cfg.ServerTimeout, bookerEntityRepository))
 		e.Get("/bookings/my", get_my_booking.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
 
 		e.Get("/bookings", get_booking_by_time.GetBookingByTimeHandler(logger, bookingRepository, cfg.ServerTimeout))
@@ -147,3 +147,4 @@ func setupLogger(env string) *slog.Logger {
 }
 
 //TODO Добавить проверки на соответствие company_id из JWT с company id изменяемой сущности
+// TODO Добавить проверки на company_id между типом бронирования и сущностью бронирования

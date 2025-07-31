@@ -2,11 +2,11 @@ package get_my_booking
 
 import (
 	"context"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/helpers"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
-	"github.com/golang-jwt/jwt/v5"
 	"log/slog"
 	"net/http"
 	"time"
@@ -20,20 +20,10 @@ func GetMyBookingsHandler(logger *slog.Logger, bookingDbRepo booking_db.BookingR
 		defer cancel()
 
 		// берём айди пользователя, который бронирует из токена JWT
-		claims, ok := r.Context().Value("tokenClaims").(jwt.MapClaims)
-		if !ok {
-			log.Error("GetMyBookingsHandler: token claims not found in context")
-			resp.RenderResponse(w, r, http.StatusUnauthorized, resp.Error("Token claims not found in context"))
-			return
-		}
+		claims := helpers.ExtractTokenClaims(ctx, log, w, r)
 
 		// Извлекаем userId из claims
-		userId, ok := claims["sub"].(float64) // JWT часто возвращает числа как float64
-		if !ok {
-			log.Error("CreateBookingHandler: userId not found in claims")
-			resp.RenderResponse(w, r, http.StatusUnauthorized, resp.Error("UserId not found in auth token"))
-			return
-		}
+		userId := claims.AccountId
 
 		requestQuery := r.URL.Query()
 		queryParser := &query_params.DefaultSortParser{
@@ -46,7 +36,7 @@ func GetMyBookingsHandler(logger *slog.Logger, bookingDbRepo booking_db.BookingR
 			return
 		}
 
-		response, err := booking_service.GetMyBooking(bookingDbRepo, int64(userId), parsedQuery, logger, ctx)
+		response, err := booking_service.GetMyBooking(bookingDbRepo, userId, parsedQuery, logger, ctx)
 		if err != nil {
 			log.Error("get my bookings failed", "error", err)
 			resp.RenderResponse(w, r, http.StatusInternalServerError, resp.Error(err.Error()))

@@ -29,6 +29,7 @@ type BookingEntityInfo struct {
 	Description   string `json:"description"`
 	Status        string `json:"status"`
 	ParentID      int64  `json:"parent_id,omitempty"`
+	CompanyId     int64
 }
 type BookingEntityListResult struct {
 	BookingEntities []BookingEntityInfo
@@ -60,7 +61,7 @@ func (be *BookingEntityRepositoryImpl) CreateBookingEntity(ctx context.Context, 
 }
 
 func (be *BookingEntityRepositoryImpl) GetBookingEntity(ctx context.Context, BookingEntityId int64) (BookingEntityInfo, error) {
-	query := `SELECT booking_type_id, name, description, status, parent_id FROM booking_entities WHERE id = $1`
+	query := `SELECT booking_type_id, name, description, status, parent_id, company_id FROM booking_entities WHERE id = $1`
 
 	var bookingEntity BookingEntityInfo
 	err := be.dbPoll.QueryRow(ctx, query, BookingEntityId).Scan(
@@ -68,7 +69,8 @@ func (be *BookingEntityRepositoryImpl) GetBookingEntity(ctx context.Context, Boo
 		&bookingEntity.Name,
 		&bookingEntity.Description,
 		&bookingEntity.Status,
-		&bookingEntity.ParentID)
+		&bookingEntity.ParentID,
+		&bookingEntity.CompanyId)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return BookingEntityInfo{}, ErrBookingEntityNotFound
 	}

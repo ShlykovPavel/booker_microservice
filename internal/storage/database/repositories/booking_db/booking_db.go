@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	create_booking_dto "github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking/create_booking"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -16,7 +17,7 @@ var ErrStartTimeAfterEndTime = errors.New("Start time after end time")
 var ErrBookingNotFound = errors.New("Booking not found")
 
 type BookingRepository interface {
-	CreateBooking(ctx context.Context, userId int64, bookingEntityId int64, status string, startTime time.Time, endTime time.Time) (int64, error)
+	CreateBooking(ctx context.Context, dto create_booking_dto.BookingRequest) (int64, error)
 	CheckBookingAvailability(ctx context.Context, bookingEntityId int64, startTime time.Time, endTime time.Time, excludeBookingId ...int64) (bool, error)
 	GetBookingsByTime(ctx context.Context, startTime time.Time, endTime time.Time, queryParams query_params.ListQueryParams) ([]BookingInfo, error)
 	GetBookingsByUserId(ctx context.Context, userId int64, queryParams query_params.ListQueryParams) (BookingList, error)
@@ -51,22 +52,22 @@ func NewBookingRepository(db *pgxpool.Pool, log *slog.Logger) *BookingRepository
 	}
 }
 
-func (b *BookingRepositoryImpl) CreateBooking(ctx context.Context, userId int64, bookingEntityId int64, status string, startTime time.Time, endTime time.Time) (int64, error) {
+func (b *BookingRepositoryImpl) CreateBooking(ctx context.Context, dto create_booking_dto.BookingRequest) (int64, error) {
 	//Конвертация времени в UTC (если пришло не в UTC)
-	startTime = startTime.UTC()
-	endTime = endTime.UTC()
+	startTime := dto.StartTime.UTC()
+	endTime := dto.EndTime.UTC()
 
 	if startTime.After(endTime) || startTime.Equal(endTime) {
 		return 0, ErrStartTimeAfterEndTime
 	}
-	if status == "" {
-		status = "pending"
+	if dto.Status == "" {
+		dto.Status = "pending"
 	}
-	query := `INSERT INTO bookings (user_id, booking_entity_id, start_time, end_time, status) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	query := `INSERT INTO bookings (user_id, booking_entity_id, start_time, end_time, status, company_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 
 	var id int64
 	b.log.Debug("create booking sql request", "query", query)
-	err := b.dbPoll.QueryRow(ctx, query, userId, bookingEntityId, startTime, endTime, status).Scan(&id)
+	err := b.dbPoll.QueryRow(ctx, query, dto.UserId, dto.BookingEntityId, startTime, endTime, dto.Status, dto.CompanyId).Scan(&id)
 	if err != nil {
 		dbErr := database.PsqlErrorHandler(err)
 		b.log.Error("Failed to create booking entity", "error", dbErr)
