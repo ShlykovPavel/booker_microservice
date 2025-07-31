@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/services_models"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,9 +16,9 @@ import (
 var ErrBookingEntityNotFound = errors.New("Объект бронирования не найден ")
 
 type BookingEntityRepository interface {
-	CreateBookingEntity(ctx context.Context, bookingTypeId int64, name, description, status string, ParentId int64) (int64, error)
+	CreateBookingEntity(ctx context.Context, dto services_models.CreateBookingEntityDto) (int64, error)
 	GetBookingEntity(ctx context.Context, BookingEntityId int64) (BookingEntityInfo, error)
-	GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingEntityListResult, error)
+	GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam, companyInfoDto services_models.CompanyInfo) (BookingEntityListResult, error)
 	UpdateBookingEntity(ctx context.Context, id int64, bookingTypeId int64, name, description, status string, ParentId int64) error
 	DeleteBookingEntity(ctx context.Context, id int64) error
 }
@@ -46,10 +47,10 @@ func NewBookingEntityRepository(db *pgxpool.Pool, log *slog.Logger) *BookingEnti
 	}
 }
 
-func (be *BookingEntityRepositoryImpl) CreateBookingEntity(ctx context.Context, bookingTypeId int64, name, description, status string, ParentId int64) (int64, error) {
-	query := `INSERT INTO booking_entities (booking_type_id, name, description, parent_id) VALUES ($1, $2, $3, $4) RETURNING id`
+func (be *BookingEntityRepositoryImpl) CreateBookingEntity(ctx context.Context, dto services_models.CreateBookingEntityDto) (int64, error) {
+	query := `INSERT INTO booking_entities (booking_type_id, name, description, parent_id, company_id) VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	var id int64
-	err := be.dbPoll.QueryRow(ctx, query, bookingTypeId, name, description, ParentId).Scan(&id)
+	err := be.dbPoll.QueryRow(ctx, query, dto.BookingEntityInfo.BookingTypeID, dto.BookingEntityInfo.Name, dto.BookingEntityInfo.Description, dto.BookingEntityInfo.ParentID, dto.CompanyId).Scan(&id)
 	if err != nil {
 		dbErr := database.PsqlErrorHandler(err)
 		be.log.Error("Failed to create booking entity", "error", err)
@@ -81,13 +82,15 @@ func (be *BookingEntityRepositoryImpl) GetBookingEntity(ctx context.Context, Boo
 	return bookingEntity, nil
 }
 
-func (be *BookingEntityRepositoryImpl) GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingEntityListResult, error) {
-	// Базовый SQL-запрос для пользователей
-	query := "SELECT id, booking_type_id, name, description, status, parent_id FROM booking_entities"
-	countQuery := "SELECT COUNT(*) FROM booking_entities"
-	searchQuery := " WHERE name ILIKE $1 OR description ILIKE $1"
-	args := []interface{}{}
-	countArgs := []interface{}{}
+func (be *BookingEntityRepositoryImpl) GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam, companyInfoDto services_models.CompanyInfo) (BookingEntityListResult, error) {
+	// Базовый SQL-запрос
+	query := "SELECT id, booking_type_id, name, description, status, parent_id FROM booking_entities WHERE company_id = $1"
+	countQuery := "SELECT COUNT(*) FROM booking_entities WHERE company_id = $1"
+	searchQuery := " AND (name ILIKE $2 OR description ILIKE $2)"
+
+	// Инициализация аргументов
+	args := []interface{}{companyInfoDto.CompanyId}
+	countArgs := []interface{}{companyInfoDto.CompanyId}
 
 	// Фильтрация по search
 	if search != "" {
@@ -104,36 +107,42 @@ func (be *BookingEntityRepositoryImpl) GetBookingEntitiesList(ctx context.Contex
 			orderBy = append(orderBy, fmt.Sprintf("%s %s", sortParam.Field, strings.ToUpper(sortParam.Order)))
 		}
 		query += " ORDER BY " + strings.Join(orderBy, ", ")
-
 	} else {
-		// Дефолтная сортировка
 		query += " ORDER BY id ASC"
 	}
 
 	// Пагинация
-	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)+1, len(args)+2)
+	paramOffset := len(args) + 1
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", paramOffset, paramOffset+1)
 	args = append(args, limit, offset)
 
 	// Подсчёт total
 	var total int64
 	err := be.dbPoll.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
 	if err != nil {
-		be.log.Error("Failed to count users", slog.Any("error", err))
-		return BookingEntityListResult{}, fmt.Errorf("failed to count users: %w", err)
+		be.log.Error("Failed to count booking entities", slog.Any("error", err))
+		return BookingEntityListResult{}, fmt.Errorf("failed to count booking entities: %w", err)
 	}
 
-	// Получение сущностей бронирования
+	// Получение данных
 	rows, err := be.dbPoll.Query(ctx, query, args...)
 	if err != nil {
-		be.log.Error("Failed to query users", slog.Any("error", err))
-		return BookingEntityListResult{}, fmt.Errorf("failed to query users: %w", err)
+		be.log.Error("Failed to query booking entities", slog.Any("error", err))
+		return BookingEntityListResult{}, fmt.Errorf("failed to query booking entities: %w", err)
 	}
 	defer rows.Close()
 
 	var BookingEntities []BookingEntityInfo
 	for rows.Next() {
 		var BookingEntity BookingEntityInfo
-		if err = rows.Scan(&BookingEntity.ID, &BookingEntity.BookingTypeID, &BookingEntity.Name, &BookingEntity.Description, &BookingEntity.Status, &BookingEntity.ParentID); err != nil {
+		if err = rows.Scan(
+			&BookingEntity.ID,
+			&BookingEntity.BookingTypeID,
+			&BookingEntity.Name,
+			&BookingEntity.Description,
+			&BookingEntity.Status,
+			&BookingEntity.ParentID,
+		); err != nil {
 			be.log.Error("Error scanning booking entity row", slog.Any("error", err))
 			return BookingEntityListResult{}, fmt.Errorf("error scanning booking entity row: %w", err)
 		}
