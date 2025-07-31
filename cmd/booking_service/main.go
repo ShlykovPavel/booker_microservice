@@ -86,6 +86,7 @@ func main() {
 
 	router.Group(func(r chi.Router) {
 		r.Use(middlewares.AuthMiddleware(cfg.JWTSecretKey, logger))
+		r.Use(middlewares.AuthAdminMiddleware(cfg.JWTSecretKey, logger))
 
 		r.Post("/bookingType", create_bookingType.CreateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout, companyRepository))
 		r.Get("/bookingType/{id}", get_bookingType_by_id_handler.GetBookingTypeByIdHandler(logger, bookerTypeRepository, cfg.ServerTimeout))

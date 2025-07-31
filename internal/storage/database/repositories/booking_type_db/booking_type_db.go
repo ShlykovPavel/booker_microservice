@@ -180,6 +180,6 @@ func (bt *BookingTypeRepositoryImpl) DeleteBookingType(ctx context.Context, id i
 	if result.RowsAffected() == 0 {
 		return ErrBookingTypeNotFound
 	}
-	bt.log.Debug("User deleted successfully", "id", id)
+	bt.log.Debug("Booking type deleted successfully", "id", id)
 	return nil
 }
