@@ -90,7 +90,7 @@ func main() {
 
 		r.Post("/bookingType", create_bookingType.CreateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout, companyRepository))
 		r.Get("/bookingType/{id}", get_bookingType_by_id_handler.GetBookingTypeByIdHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
-		r.Get("/bookingType", get_booking_types_list_handler.GetBookingTypesListHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
+		r.Get("/bookingType", get_booking_types_list_handler.GetBookingTypesListHandler(logger, bookerTypeRepository, cfg.ServerTimeout, companyRepository))
 		r.Put("/bookingType/{id}", update_booking_type.UpdateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
 		r.Delete("/bookingType/{id}", delete_booking_type.DeleteBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
 
@@ -140,3 +140,5 @@ func setupLogger(env string) *slog.Logger {
 	}
 	return logger
 }
+
+//TODO Добавить проверки на соответствие company_id из JWT с company id изменяемой сущности

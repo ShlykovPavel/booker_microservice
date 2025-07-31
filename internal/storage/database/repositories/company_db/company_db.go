@@ -47,7 +47,7 @@ func (c *CompanyRepositoryImpl) GetCompany(ctx context.Context, companyId int64)
 		c.log.Error("Failed to get company", "error", err)
 		return 0, database.PsqlErrorHandler(dbErr)
 	}
-	c.log.Debug("Created company", "id", id)
+	c.log.Debug("Get company in db", "id", id)
 	return id, nil
 }
 func (c *CompanyRepositoryImpl) DeleteCompany(ctx context.Context, companyId int64) error {
