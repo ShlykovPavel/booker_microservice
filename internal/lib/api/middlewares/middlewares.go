@@ -71,13 +71,8 @@ func AuthAdminMiddleware(secretKey string, log *slog.Logger) func(next http.Hand
 				render.JSON(w, r, resp.Error("Internal server error"))
 				return
 			}
-
 			value := claims.Role
-			//if !ok {
-			//	log.Error("Failed to retrieve user role from context", "user_role", claims["user_role"])
-			//	resp.RenderResponse(w, r, http.StatusForbidden, resp.Error("Forbidden"))
-			//	return
-			//}
+
 			// Проверяем, является ли пользователь администратором
 			switch value {
 			case "Administrator":

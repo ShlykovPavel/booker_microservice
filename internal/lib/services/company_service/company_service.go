@@ -28,8 +28,7 @@ func CheckCompany(companyDbRepo company_db.CompanyRepository, logger *slog.Logge
 	log := logger.With(slog.String("op", "company_service/CheckCompany"))
 
 	// Проверяем наличие компании
-	id, err := companyDbRepo.GetCompany(ctx, companyId)
-	if err != nil {
+	if id, err := companyDbRepo.GetCompany(ctx, companyId); id != 0 || err != nil {
 		// Если компания не найдена, создаем новую
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Debug("Company not found, creating new one", "company_id", companyId)
@@ -44,12 +43,8 @@ func CheckCompany(companyDbRepo company_db.CompanyRepository, logger *slog.Logge
 		// Если другая ошибка, возвращаем её
 		log.Error("Failed to get company", "err", err)
 		return false, err
+
 	}
 
-	// Если id валидный, компания существует
-	if id > 0 {
-		log.Debug("Company found", "company_id", companyId)
-		return true, nil
-	}
-	return false, nil
+	return true, nil
 }
