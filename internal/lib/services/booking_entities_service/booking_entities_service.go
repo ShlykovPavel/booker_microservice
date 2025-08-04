@@ -7,18 +7,27 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/create_booking_entity"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/get_booking_entities_list"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/get_booking_entity"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/get_booking_type_entities"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/create_booking_type"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/company_service"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/services_models"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/company_db"
 	"log/slog"
 	"strconv"
 )
 
-func CreateBookingEntity(dto create_booking_entity.BookingEntity, bookingTypeDBRepo booking_type_db.BookingTypeRepository, bookingEntityDBRepo booking_entity_db.BookingEntityRepository, ctx context.Context, log *slog.Logger) (create_booking_type.ResponseId, error) {
+func CreateBookingEntity(dto services_models.CreateBookingEntityDto, bookingTypeDBRepo booking_type_db.BookingTypeRepository, bookingEntityDBRepo booking_entity_db.BookingEntityRepository, ctx context.Context, log *slog.Logger, companyDbRepo company_db.CompanyRepository) (create_booking_type.ResponseId, error) {
 	log = log.With(slog.String("op", "internal/lib/services/booking_entities_service/booking_entities_service.go/CreateBookingEntity"))
+
+	ok, err := company_service.CheckCompany(companyDbRepo, log, ctx, dto.CompanyId, dto.CompanyName)
+	if !ok || err != nil {
+		return create_booking_type.ResponseId{}, err
+	}
 	//Проверяем то тип бронирования существует
-	_, err := bookingTypeDBRepo.GetBookingType(ctx, dto.BookingTypeID)
+	_, err = bookingTypeDBRepo.GetBookingType(ctx, dto.BookingEntityInfo.BookingTypeID)
 	if err != nil {
 		if errors.Is(err, booking_type_db.ErrBookingTypeNotFound) {
 			return create_booking_type.ResponseId{}, err
@@ -27,7 +36,7 @@ func CreateBookingEntity(dto create_booking_entity.BookingEntity, bookingTypeDBR
 		return create_booking_type.ResponseId{}, fmt.Errorf("failed to retrieve booking type: %w", err)
 
 	}
-	id, err := bookingEntityDBRepo.CreateBookingEntity(ctx, dto.BookingTypeID, dto.Name, dto.Description, dto.Status, dto.ParentID)
+	id, err := bookingEntityDBRepo.CreateBookingEntity(ctx, dto)
 	if err != nil {
 		log.Error("Ошибка создания объекта бронирования", "err", err)
 		return create_booking_type.ResponseId{}, err
@@ -61,11 +70,16 @@ func GetBookingEntityById(id int64, bookingEntityDBRepo booking_entity_db.Bookin
 	}, nil
 }
 
-func GetBookingEntitiesList(log *slog.Logger, bookingEntityDBRepo booking_entity_db.BookingEntityRepository, ctx context.Context, queryParams query_params.ListQueryParams) (get_booking_entities_list.BookingEntityList, error) {
+func GetBookingEntitiesList(log *slog.Logger, bookingEntityDBRepo booking_entity_db.BookingEntityRepository, ctx context.Context, queryParams query_params.ListQueryParams, companyDto services_models.CompanyInfo, companyDbRepo company_db.CompanyRepository) (get_booking_entities_list.BookingEntityList, error) {
 	const op = "internal/lib/services/booking_entities_service/booking_entities_service.go/GetBookingEntitiesList"
 	log = log.With(slog.String("op", op))
 
-	result, err := bookingEntityDBRepo.GetBookingEntitiesList(ctx, queryParams.Search, queryParams.Limit, queryParams.Offset, queryParams.SortParams)
+	ok, err := company_service.CheckCompany(companyDbRepo, log, ctx, companyDto.CompanyId, companyDto.CompanyName)
+	if !ok || err != nil {
+		return get_booking_entities_list.BookingEntityList{}, err
+	}
+
+	result, err := bookingEntityDBRepo.GetBookingEntitiesList(ctx, queryParams.Search, queryParams.Limit, queryParams.Offset, queryParams.SortParams, companyDto)
 	if err != nil {
 		log.Error("Failed to get booking entities list", "err", err)
 		return get_booking_entities_list.BookingEntityList{}, err
@@ -129,4 +143,31 @@ func DeleteBookingEntity(log *slog.Logger, bookingEntityDBRepo booking_entity_db
 		return err
 	}
 	return nil
+}
+
+func GetEntitiesByType(log *slog.Logger, bookingEntityDBRepo booking_entity_db.BookingEntityRepository, ctx context.Context, id int64, companyDto services_models.CompanyInfo, companyDbRepo company_db.CompanyRepository) ([]get_booking_type_entities.BookingTypeEntitiesResponse, error) {
+	logger := log.With(slog.String("op", "booking_entities_service.GetEntitiesByType"),
+		slog.String("Company Id ", strconv.FormatInt(companyDto.CompanyId, 10)),
+		slog.String("Company Name ", companyDto.CompanyName),
+		slog.String("Booking type id", strconv.FormatInt(id, 10)))
+
+	ok, err := company_service.CheckCompany(companyDbRepo, log, ctx, companyDto.CompanyId, companyDto.CompanyName)
+	if !ok || err != nil {
+		return nil, err
+	}
+	result, err := bookingEntityDBRepo.GetBookingTypeEntities(ctx, id, companyDto)
+	if err != nil {
+		logger.Error("Unexpected error while retrieve booking entity", "err", err)
+		return nil, err
+	}
+	BookingEntitiesList := make([]get_booking_type_entities.BookingTypeEntitiesResponse, 0, len(result))
+	for _, bookingEntity := range result {
+		bookingEntityInfo := get_booking_type_entities.BookingTypeEntitiesResponse{
+			Id:          bookingEntity.ID,
+			Description: bookingEntity.Description,
+			Name:        bookingEntity.Name,
+		}
+		BookingEntitiesList = append(BookingEntitiesList, bookingEntityInfo)
+	}
+	return BookingEntitiesList, nil
 }

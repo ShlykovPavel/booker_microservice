@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/services_models"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,9 +16,9 @@ import (
 var ErrBookingTypeNotFound = errors.New("Тип бронирования не найден ")
 
 type BookingTypeRepository interface {
-	CreateBookingType(ctx context.Context, name, description string) (int64, error)
+	CreateBookingType(ctx context.Context, dto services_models.CreateBookingTypeDTO) (int64, error)
 	GetBookingType(ctx context.Context, BookingTypeId int64) (BookingTypeInfo, error)
-	GetBookingTypeList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingTypeListResult, error)
+	GetBookingTypeList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam, companyInfoDto services_models.CompanyInfo) (BookingTypeListResult, error)
 	UpdateBookingType(ctx context.Context, id int64, name, description string) error
 	DeleteBookingType(ctx context.Context, id int64) error
 }
@@ -43,11 +44,11 @@ func NewBookingTypeRepository(db *pgxpool.Pool, log *slog.Logger) *BookingTypeRe
 	}
 }
 
-func (bt *BookingTypeRepositoryImpl) CreateBookingType(ctx context.Context, name, description string) (int64, error) {
-	query := `INSERT INTO booking_types (name, description) VALUES ($1, $2) RETURNING id`
+func (bt *BookingTypeRepositoryImpl) CreateBookingType(ctx context.Context, dto services_models.CreateBookingTypeDTO) (int64, error) {
+	query := `INSERT INTO booking_types (name, description, company_id) VALUES ($1, $2, $3) RETURNING id`
 
 	var id int64
-	err := bt.dbPoll.QueryRow(ctx, query, name, description).Scan(&id)
+	err := bt.dbPoll.QueryRow(ctx, query, dto.Name, dto.Description, dto.CompanyId).Scan(&id)
 	if err != nil {
 		dbErr := database.PsqlErrorHandler(err)
 		bt.log.Error("Failed to create booking type", "error", err)
@@ -76,33 +77,32 @@ func (bt *BookingTypeRepositoryImpl) GetBookingType(ctx context.Context, Booking
 	return bookingType, nil
 }
 
-func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam) (BookingTypeListResult, error) {
-	// Базовый SQL-запрос для пользователей
-	query := "SELECT id, name, description FROM booking_types"
-	countQuery := "SELECT COUNT(*) FROM booking_types"
-	searchQuery := " WHERE name ILIKE $1 OR description ILIKE $1"
-	args := []interface{}{}
-	countArgs := []interface{}{}
+func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam, companyInfoDto services_models.CompanyInfo) (BookingTypeListResult, error) {
+	// Базовый SQL-запрос
+	query := "SELECT id, name, description FROM booking_types WHERE company_id = $1"
+	countQuery := "SELECT COUNT(*) FROM booking_types WHERE company_id = $1"
+	searchQuery := " AND (name ILIKE $2 OR description ILIKE $2)"
+
+	// Инициализация аргументов
+	args := []interface{}{companyInfoDto.CompanyId}
+	countArgs := []interface{}{companyInfoDto.CompanyId} // Начинаем с company_id для countQuery
 
 	// Фильтрация по search
 	if search != "" {
 		query += searchQuery
 		countQuery += searchQuery
 		args = append(args, "%"+search+"%")
-		countArgs = append(countArgs, "%"+search+"%")
+		countArgs = append(countArgs, "%"+search+"%") // Исправлено: добавляем в countArgs отдельно
 	}
 
 	// Сортировка
-	//TODO Изменить сортировку на отдельные query
 	var orderBy []string
 	if len(sortParams) > 0 {
 		for _, sortParam := range sortParams {
 			orderBy = append(orderBy, fmt.Sprintf("%s %s", sortParam.Field, strings.ToUpper(sortParam.Order)))
 		}
 		query += " ORDER BY " + strings.Join(orderBy, ", ")
-
 	} else {
-		// Дефолтная сортировка
 		query += " ORDER BY id ASC"
 	}
 
@@ -112,17 +112,17 @@ func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, sea
 
 	// Подсчёт total
 	var total int64
-	err := bt.dbPoll.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
+	err := bt.dbPoll.QueryRow(ctx, countQuery, countArgs...).Scan(&total) // Используем countArgs
 	if err != nil {
-		bt.log.Error("Failed to count users", slog.Any("error", err))
-		return BookingTypeListResult{}, fmt.Errorf("failed to count users: %w", err)
+		bt.log.Error("Failed to count booking types", slog.Any("error", err))
+		return BookingTypeListResult{}, fmt.Errorf("failed to count booking types: %w", err)
 	}
 
-	// Получение пользователей
+	// Получение данных
 	rows, err := bt.dbPoll.Query(ctx, query, args...)
 	if err != nil {
-		bt.log.Error("Failed to query users", slog.Any("error", err))
-		return BookingTypeListResult{}, fmt.Errorf("failed to query users: %w", err)
+		bt.log.Error("Failed to query booking types", slog.Any("error", err))
+		return BookingTypeListResult{}, fmt.Errorf("failed to query booking types: %w", err)
 	}
 	defer rows.Close()
 
@@ -130,8 +130,8 @@ func (bt *BookingTypeRepositoryImpl) GetBookingTypeList(ctx context.Context, sea
 	for rows.Next() {
 		var BookingType BookingTypeInfo
 		if err := rows.Scan(&BookingType.ID, &BookingType.Name, &BookingType.Description); err != nil {
-			bt.log.Error("Error scanning user row", slog.Any("error", err))
-			return BookingTypeListResult{}, fmt.Errorf("error scanning user row: %w", err)
+			bt.log.Error("Error scanning booking type row", slog.Any("error", err))
+			return BookingTypeListResult{}, fmt.Errorf("error scanning booking type row: %w", err)
 		}
 		BookingTypes = append(BookingTypes, BookingType)
 	}
@@ -179,6 +179,6 @@ func (bt *BookingTypeRepositoryImpl) DeleteBookingType(ctx context.Context, id i
 	if result.RowsAffected() == 0 {
 		return ErrBookingTypeNotFound
 	}
-	bt.log.Debug("User deleted successfully", "id", id)
+	bt.log.Debug("Booking type deleted successfully", "id", id)
 	return nil
 }

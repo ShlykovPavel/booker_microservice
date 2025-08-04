@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/authorization"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/jwt_tokens"
 	"github.com/go-chi/render"
-	"github.com/golang-jwt/jwt/v5"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -64,25 +64,27 @@ func AuthAdminMiddleware(secretKey string, log *slog.Logger) func(next http.Hand
 		// Используем AuthMiddleware для проверки авторизации
 		return AuthMiddleware(secretKey, log)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Извлекаем claims из контекста
-			claims, ok := r.Context().Value("tokenClaims").(jwt.MapClaims)
+			claims, ok := r.Context().Value("tokenClaims").(*jwt_tokens.TokenClaims)
 			if !ok {
 				log.Error("Failed to retrieve claims from context")
 				render.Status(r, http.StatusInternalServerError)
 				render.JSON(w, r, resp.Error("Internal server error"))
 				return
 			}
+			value := claims.Role
 
-			value, ok := claims["user_role"].(string)
-			if !ok {
-				log.Error("Failed to retrieve user role from context", "user_role", claims["user_role"])
-				resp.RenderResponse(w, r, http.StatusForbidden, resp.Error("Forbidden"))
-				return
-			}
 			// Проверяем, является ли пользователь администратором
-			if value == "admin" {
+			switch value {
+			case "Administrator":
 				log.Debug("User is authorized and has admin privileges")
 				next.ServeHTTP(w, r)
-			} else {
+			case "Owner":
+				log.Debug("User is authorized and has admin privileges")
+				next.ServeHTTP(w, r)
+			case "Manager":
+				log.Debug("User is authorized and has admin privileges")
+				next.ServeHTTP(w, r)
+			default:
 				log.Debug("User is NOT authorized and has admin privileges")
 				resp.RenderResponse(w, r, http.StatusForbidden,
 					resp.Error("Forbidden"))

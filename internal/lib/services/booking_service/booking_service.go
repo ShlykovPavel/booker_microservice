@@ -9,12 +9,13 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/create_booking_type"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
+	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
 	"log/slog"
 )
 
 var ErrBookingNotAvailable = errors.New("Booking not available")
 
-func CreateBooking(dto create_booking_dto.BookingRequest, bookingRepo booking_db.BookingRepository, ctx context.Context, log *slog.Logger) (create_booking_type.ResponseId, error) {
+func CreateBooking(dto create_booking_dto.BookingRequest, bookingRepo booking_db.BookingRepository, ctx context.Context, log *slog.Logger, bookingEntityDBRepo booking_entity_db.BookingEntityRepository) (create_booking_type.ResponseId, error) {
 	log = log.With(slog.String("op", "internal/lib/services/booking_service/booking_service.go/CreateBooking"))
 
 	//Проверка, что время свободно
@@ -26,7 +27,20 @@ func CreateBooking(dto create_booking_dto.BookingRequest, bookingRepo booking_db
 	if !available {
 		return create_booking_type.ResponseId{}, ErrBookingNotAvailable
 	}
-	id, err := bookingRepo.CreateBooking(ctx, dto.UserId, dto.BookingEntityId, dto.Status, dto.StartTime, dto.EndTime)
+
+	entityInfo, err := bookingEntityDBRepo.GetBookingEntity(ctx, dto.BookingEntityId)
+	if err != nil {
+		log.Error("Get booking entity failed", "error", err.Error())
+		return create_booking_type.ResponseId{}, err
+	}
+
+	// Проверяем, что companyId из токена совпадает с companyId сущности
+	if entityInfo.CompanyId != dto.CompanyId {
+		log.Error("Company ID mismatch", "tokenCompanyId", dto.CompanyId, "entityCompanyId", entityInfo.CompanyId)
+		return create_booking_type.ResponseId{}, errors.New("access denied: company ID mismatch")
+	}
+
+	id, err := bookingRepo.CreateBooking(ctx, dto)
 	if err != nil {
 		log.Error("CreateBooking failed", "error", err)
 		return create_booking_type.ResponseId{}, err

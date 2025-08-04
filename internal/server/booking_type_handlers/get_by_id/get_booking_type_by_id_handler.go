@@ -17,7 +17,6 @@ func GetBookingTypeByIdHandler(log *slog.Logger, bookingTypeRepository booking_t
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := slog.With(
 			slog.String("op", "internal/server/booking_type_handlers/get_by_id/get_booking_type_by_id_handler.go/GetBookingTypeByIdHandler"))
-
 		BookingTypeID := chi.URLParam(r, "id")
 		if BookingTypeID == "" {
 			log.Error("User ID is empty")
@@ -43,7 +42,7 @@ func GetBookingTypeByIdHandler(log *slog.Logger, bookingTypeRepository booking_t
 			resp.RenderResponse(w, r, http.StatusInternalServerError, resp.Error("Something went wrong, while getting booking type"))
 			return
 		}
-		log.Debug("Successful get user by id", "user", bookingTypeInfo)
+		log.Debug("Successful get booking type by id", "user", bookingTypeInfo)
 		resp.RenderResponse(w, r, http.StatusOK, bookingTypeInfo)
 		return
 	}
