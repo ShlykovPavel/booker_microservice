@@ -16,6 +16,7 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_entities_handlers/delete_booking_entity"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_entities_handlers/get_booking_entities_list_handler"
 	get_bookingEntity_by_id_handler "github.com/ShlykovPavel/booker_microservice/internal/server/booking_entities_handlers/get_by_id"
+	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_entities_handlers/get_entities_by_booking_type"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_entities_handlers/update_booking_entity"
 	create_bookingType "github.com/ShlykovPavel/booker_microservice/internal/server/booking_type_handlers/create"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking_type_handlers/delete_booking_type"
@@ -99,6 +100,7 @@ func main() {
 		r.Get("/bookingsEntity", get_booking_entities_list_handler.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
 		r.Put("/bookingsEntity/{id}", update_booking_entity.UpdateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
 		r.Delete("/bookingsEntity/{id}", delete_booking_entity.DeleteBookingEntityHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
+		r.Get("/bookingsEntity/{bookingTypeId}", get_entities_by_booking_type.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
 
 	})
 	router.Group(func(e chi.Router) {
@@ -108,6 +110,7 @@ func main() {
 		e.Get("/bookings/my", get_my_booking.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
 
 		e.Get("/bookings", get_booking_by_time.GetBookingByTimeHandler(logger, bookingRepository, cfg.ServerTimeout))
+		//TODO доработать метод /bookingsEntity/{id}/bookings. Сделать query паарметры на время бронирвания start time и end time что б не отдавать вообще весь список и разгрузить апи на экране календаря
 		e.Get("/bookingsEntity/{id}/bookings", get_booking_by_booking_entity.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
 		e.Get("/bookings/{id}", get_booking_by_id.GetBookingByIdHandler(logger, bookingRepository, cfg.ServerTimeout))
 		e.Put("/bookings/{id}", update_booking.UpdateBookingHandler(logger, bookingRepository, cfg.ServerTimeout))

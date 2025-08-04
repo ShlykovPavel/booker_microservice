@@ -7,6 +7,7 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/create_booking_entity"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/get_booking_entities_list"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/get_booking_entity"
+	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/get_booking_type_entities"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/create_booking_type"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/company_service"
@@ -142,4 +143,31 @@ func DeleteBookingEntity(log *slog.Logger, bookingEntityDBRepo booking_entity_db
 		return err
 	}
 	return nil
+}
+
+func GetEntitiesByType(log *slog.Logger, bookingEntityDBRepo booking_entity_db.BookingEntityRepository, ctx context.Context, id int64, companyDto services_models.CompanyInfo, companyDbRepo company_db.CompanyRepository) ([]get_booking_type_entities.BookingTypeEntitiesResponse, error) {
+	logger := log.With(slog.String("op", "booking_entities_service.GetEntitiesByType"),
+		slog.String("Company Id ", strconv.FormatInt(companyDto.CompanyId, 10)),
+		slog.String("Company Name ", companyDto.CompanyName),
+		slog.String("Booking type id", strconv.FormatInt(id, 10)))
+
+	ok, err := company_service.CheckCompany(companyDbRepo, log, ctx, companyDto.CompanyId, companyDto.CompanyName)
+	if !ok || err != nil {
+		return nil, err
+	}
+	result, err := bookingEntityDBRepo.GetBookingTypeEntities(ctx, id, companyDto)
+	if err != nil {
+		logger.Error("Unexpected error while retrieve booking entity", "err", err)
+		return nil, err
+	}
+	BookingEntitiesList := make([]get_booking_type_entities.BookingTypeEntitiesResponse, 0, len(result))
+	for _, bookingEntity := range result {
+		bookingEntityInfo := get_booking_type_entities.BookingTypeEntitiesResponse{
+			Id:          bookingEntity.ID,
+			Description: bookingEntity.Description,
+			Name:        bookingEntity.Name,
+		}
+		BookingEntitiesList = append(BookingEntitiesList, bookingEntityInfo)
+	}
+	return BookingEntitiesList, nil
 }

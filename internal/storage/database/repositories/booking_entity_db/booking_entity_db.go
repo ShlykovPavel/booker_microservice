@@ -21,6 +21,7 @@ type BookingEntityRepository interface {
 	GetBookingEntitiesList(ctx context.Context, search string, limit, offset int, sortParams []query_params.SortParam, companyInfoDto services_models.CompanyInfo) (BookingEntityListResult, error)
 	UpdateBookingEntity(ctx context.Context, id int64, bookingTypeId int64, name, description, status string, ParentId int64) error
 	DeleteBookingEntity(ctx context.Context, id int64) error
+	GetBookingTypeEntities(ctx context.Context, bookingTypeId int64, companyInfoDto services_models.CompanyInfo) ([]BookingEntityInfo, error)
 }
 type BookingEntityInfo struct {
 	ID            int64  `json:"id"`
@@ -196,4 +197,40 @@ func (be *BookingEntityRepositoryImpl) DeleteBookingEntity(ctx context.Context, 
 	}
 	be.log.Debug("booking entity deleted successfully", "id", id)
 	return nil
+}
+
+// TODO Сделать поинт получения всех сущностей бронирования по id типа бронирования
+func (be *BookingEntityRepositoryImpl) GetBookingTypeEntities(ctx context.Context, bookingTypeId int64, companyInfoDto services_models.CompanyInfo) ([]BookingEntityInfo, error) {
+	query := `SELECT id, name, description FROM booking_entities WHERE booking_type_id = $1 AND company_id = $2`
+
+	results, err := be.dbPoll.Query(ctx, query, bookingTypeId, companyInfoDto.CompanyId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrBookingEntityNotFound
+		}
+		dbErr := database.PsqlErrorHandler(err)
+		be.log.Error("Failed to get booking entities in db", slog.String("error", err.Error()))
+		return nil, dbErr
+	}
+	defer results.Close()
+	var bookingEntities []BookingEntityInfo
+	for results.Next() {
+		var bookingEntity BookingEntityInfo
+		if err = results.Scan(
+			&bookingEntity.ID,
+			&bookingEntity.Name,
+			&bookingEntity.Description); err != nil {
+			be.log.Error("Failed to scan booking entity row", slog.Any("error", err))
+			return nil, ErrBookingEntityNotFound
+		}
+		bookingEntities = append(bookingEntities, bookingEntity)
+
+	}
+
+	if err = results.Err(); err != nil {
+		be.log.Error("Error reading rows", slog.Any("error", err))
+		return nil, fmt.Errorf("error reading rows: %w", err)
+	}
+
+	return bookingEntities, nil
 }
