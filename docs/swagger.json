@@ -1,0 +1,119 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API для управления бронированиями",
+        "title": "Booker Microservice API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8081",
+    "basePath": "/",
+    "paths": {
+        "/bookingsType": {
+            "get": {
+                "description": "Получить список всех типов бронирований с пагинацией",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsType"
+                ],
+                "summary": "Получить список типов бронирований",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "\"Bearer \u003ctoken\u003e\"",
+                        "description": "JWT токен",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Лимит на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Смещение",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeList"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeInfoList": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeList": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeInfoList"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeListMetaData"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeListMetaData": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Bearer JWT token",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

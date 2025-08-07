@@ -3,10 +3,10 @@ package user_service
 import (
 	"context"
 	"errors"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/get_user_by_id"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/get_users_list"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/update_user"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
+	"github.com/ShlykovPavel/booker_microservice/models/users/get_user_by_id"
+	"github.com/ShlykovPavel/booker_microservice/models/users/get_users_list"
+	"github.com/ShlykovPavel/booker_microservice/models/users/update_user"
 	"github.com/ShlykovPavel/booker_microservice/user_service/storage/repositories/users_db"
 	"log/slog"
 	"strconv"

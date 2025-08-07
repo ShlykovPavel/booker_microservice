@@ -1,0 +1,80 @@
+basePath: /
+definitions:
+  github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeInfoList:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeList:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeInfoList'
+        type: array
+      meta:
+        $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeListMetaData'
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeListMetaData:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: API для управления бронированиями
+  title: Booker Microservice API
+  version: "1.0"
+paths:
+  /bookingsType:
+    get:
+      description: Получить список всех типов бронирований с пагинацией
+      parameters:
+      - default: '"Bearer <token>"'
+        description: JWT токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Лимит на странице
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Смещение
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeList'
+      summary: Получить список типов бронирований
+      tags:
+      - bookingsType
+securityDefinitions:
+  BearerAuth:
+    description: Bearer JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

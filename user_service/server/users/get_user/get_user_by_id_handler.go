@@ -3,8 +3,8 @@ package get_user
 import (
 	"context"
 	"errors"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/get_user_by_id"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
+	"github.com/ShlykovPavel/booker_microservice/models/users/get_user_by_id"
 	"github.com/ShlykovPavel/booker_microservice/user_service/internal/lib/services/user_service"
 	"github.com/ShlykovPavel/booker_microservice/user_service/storage/repositories/users_db"
 	"github.com/go-chi/chi/v5"

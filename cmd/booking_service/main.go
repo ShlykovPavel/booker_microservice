@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	_ "github.com/ShlykovPavel/booker_microservice/docs"
 	"github.com/ShlykovPavel/booker_microservice/internal/config"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/middlewares"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/create_booking"
@@ -36,6 +37,7 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/user_service/storage/repositories/users_db"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"log/slog"
 	"net/http"
@@ -48,6 +50,15 @@ const (
 	envProd  = "prod"
 )
 
+// @title Booker Microservice API
+// @version 1.0
+// @description API для управления бронированиями
+// @host localhost:8081
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Bearer JWT token
 func main() {
 	cfg, err := config.LoadConfig(".env")
 	if err != nil {
@@ -78,6 +89,10 @@ func main() {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
+
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"), // Путь к сгенерированному JSON
+	))
 
 	router.Post("/register", users.CreateUser(logger, userRepository, cfg.ServerTimeout))
 	router.Get("/users/{id}", get_user.GetUserById(logger, userRepository, cfg.ServerTimeout))

@@ -3,9 +3,9 @@ package update_user
 import (
 	"context"
 	"errors"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/create_user"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/update_user"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
+	"github.com/ShlykovPavel/booker_microservice/models/users/create_user"
+	"github.com/ShlykovPavel/booker_microservice/models/users/update_user"
 	"github.com/ShlykovPavel/booker_microservice/user_service/internal/lib/services/user_service"
 	"github.com/ShlykovPavel/booker_microservice/user_service/storage/repositories/users_db"
 	"github.com/go-chi/chi/v5"

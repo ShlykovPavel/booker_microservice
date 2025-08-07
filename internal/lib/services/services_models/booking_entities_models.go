@@ -1,6 +1,8 @@
 package services_models
 
-import "github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/create_booking_entity"
+import (
+	"github.com/ShlykovPavel/booker_microservice/models/booking_entities/create_booking_entity"
+)
 
 type CreateBookingEntityDto struct {
 	BookingEntityInfo create_booking_entity.BookingEntity
