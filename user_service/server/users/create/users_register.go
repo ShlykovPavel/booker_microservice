@@ -3,8 +3,8 @@ package users
 import (
 	"context"
 	"errors"
-	usersDto "github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/users/create_user"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
+	"github.com/ShlykovPavel/booker_microservice/models/users/create_user"
 	users "github.com/ShlykovPavel/booker_microservice/user_service/server/users"
 	"github.com/ShlykovPavel/booker_microservice/user_service/storage/repositories/users_db"
 	"github.com/go-chi/chi/v5/middleware"
@@ -26,7 +26,7 @@ func CreateUser(log *slog.Logger, userRepository users_db.UserRepository, timeou
 		ctx, cancel := context.WithTimeout(r.Context(), timeout)
 		defer cancel()
 
-		var user usersDto.UserCreate
+		var user create_user.UserCreate
 		err := render.DecodeJSON(r.Body, &user)
 		if err != nil {
 			log.Error("Error while decoding request body", "err", err)
@@ -71,7 +71,7 @@ func CreateUser(log *slog.Logger, userRepository users_db.UserRepository, timeou
 		}
 
 		log.Info("Created user", "user id", userId)
-		resp.RenderResponse(w, r, http.StatusCreated, usersDto.CreateUserResponse{
+		resp.RenderResponse(w, r, http.StatusCreated, create_user.CreateUserResponse{
 			resp.OK(),
 			userId,
 		})

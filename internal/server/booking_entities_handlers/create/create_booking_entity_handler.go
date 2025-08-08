@@ -5,19 +5,30 @@ import (
 	"errors"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/body"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/helpers"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_entities/create_booking_entity"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_entities_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/services_models"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/company_db"
+	"github.com/ShlykovPavel/booker_microservice/models/booking_entities/create_booking_entity"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking_type/create_booking_type"
 	"github.com/go-playground/validator"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
+// CreateBookingEntityHandler godoc
+// @Summary Создать объект бронирования
+// @Description Создать объект бронирования
+// @Tags bookingsEntity
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param input body create_booking_entity.BookingEntity true "Данные объекта бронирования"
+// @Success 201 {object} create_booking_type.ResponseId
+// @Router /bookingsEntity [post]
 func CreateBookingEntityHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, bookingEntityRepository booking_entity_db.BookingEntityRepository, timeout time.Duration, companyDbRepo company_db.CompanyRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := slog.With(

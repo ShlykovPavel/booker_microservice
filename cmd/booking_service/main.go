@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	_ "github.com/ShlykovPavel/booker_microservice/docs"
 	"github.com/ShlykovPavel/booker_microservice/internal/config"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/middlewares"
 	"github.com/ShlykovPavel/booker_microservice/internal/server/booking/create_booking"
@@ -36,6 +37,7 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/user_service/storage/repositories/users_db"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"log/slog"
 	"net/http"
@@ -48,6 +50,15 @@ const (
 	envProd  = "prod"
 )
 
+// @title Booker Microservice API
+// @version 1.0
+// @description API для управления бронированиями
+// @host localhost:8081
+// @BasePath /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Add "Bearer" before token
 func main() {
 	cfg, err := config.LoadConfig(".env")
 	if err != nil {
@@ -78,43 +89,49 @@ func main() {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
+	router.Route("/api/v1", func(apiRouter chi.Router) {
+		apiRouter.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("/api/v1/swagger/doc.json"),
+		))
 
-	router.Post("/register", users.CreateUser(logger, userRepository, cfg.ServerTimeout))
-	router.Get("/users/{id}", get_user.GetUserById(logger, userRepository, cfg.ServerTimeout))
-	router.Get("/users", get_user_list.GetUserList(logger, userRepository, cfg.ServerTimeout))
-	router.Put("/users/{id}", update_user.UpdateUserHandler(logger, userRepository, cfg.ServerTimeout))
-	router.Delete("/users/{id}", users_delete.DeleteUserHandler(logger, userRepository, cfg.ServerTimeout))
+		apiRouter.Post("/register", users.CreateUser(logger, userRepository, cfg.ServerTimeout))
+		apiRouter.Get("/users/{id}", get_user.GetUserById(logger, userRepository, cfg.ServerTimeout))
+		apiRouter.Get("/users", get_user_list.GetUserList(logger, userRepository, cfg.ServerTimeout))
+		apiRouter.Put("/users/{id}", update_user.UpdateUserHandler(logger, userRepository, cfg.ServerTimeout))
+		apiRouter.Delete("/users/{id}", users_delete.DeleteUserHandler(logger, userRepository, cfg.ServerTimeout))
 
-	router.Group(func(r chi.Router) {
-		r.Use(middlewares.AuthMiddleware(cfg.JWTSecretKey, logger))
-		r.Use(middlewares.AuthAdminMiddleware(cfg.JWTSecretKey, logger))
+		apiRouter.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware(cfg.JWTSecretKey, logger))
+			r.Use(middlewares.AuthAdminMiddleware(cfg.JWTSecretKey, logger))
 
-		r.Post("/bookingsType", create_bookingType.CreateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout, companyRepository))
-		r.Get("/bookingsType/{id}", get_bookingType_by_id_handler.GetBookingTypeByIdHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
-		r.Get("/bookingsType", get_booking_types_list_handler.GetBookingTypesListHandler(logger, bookerTypeRepository, cfg.ServerTimeout, companyRepository))
-		r.Put("/bookingsType/{id}", update_booking_type.UpdateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
-		r.Delete("/bookingsType/{id}", delete_booking_type.DeleteBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
+			r.Post("/bookingsType", create_bookingType.CreateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout, companyRepository))
+			r.Get("/bookingsType/{id}", get_bookingType_by_id_handler.GetBookingTypeByIdHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
+			r.Get("/bookingsType", get_booking_types_list_handler.GetBookingTypesListHandler(logger, bookerTypeRepository, cfg.ServerTimeout, companyRepository))
+			r.Put("/bookingsType/{id}", update_booking_type.UpdateBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
+			r.Delete("/bookingsType/{id}", delete_booking_type.DeleteBookingTypeHandler(logger, bookerTypeRepository, cfg.ServerTimeout))
 
-		r.Post("/bookingsEntity", create_bookingEntity_handler.CreateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
-		r.Get("/bookingsEntity/{id}", get_bookingEntity_by_id_handler.GetBookingEntityByIdHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
-		r.Get("/bookingsEntity", get_booking_entities_list_handler.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
-		r.Put("/bookingsEntity/{id}", update_booking_entity.UpdateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
-		r.Delete("/bookingsEntity/{id}", delete_booking_entity.DeleteBookingEntityHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
-		r.Get("/bookingsEntity/{bookingTypeId}", get_entities_by_booking_type.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
+			r.Post("/bookingsEntity", create_bookingEntity_handler.CreateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
+			r.Get("/bookingsEntity/{id}", get_bookingEntity_by_id_handler.GetBookingEntityByIdHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
+			r.Get("/bookingsEntity", get_booking_entities_list_handler.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
+			r.Put("/bookingsEntity/{id}", update_booking_entity.UpdateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
+			r.Delete("/bookingsEntity/{id}", delete_booking_entity.DeleteBookingEntityHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
+			r.Get("/bookingsType/{id}/bookingsEntity", get_entities_by_booking_type.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
 
-	})
-	router.Group(func(e chi.Router) {
-		e.Use(middlewares.AuthMiddleware(cfg.JWTSecretKey, logger))
+		})
+		apiRouter.Group(func(e chi.Router) {
+			e.Use(middlewares.AuthMiddleware(cfg.JWTSecretKey, logger))
 
-		e.Post("/bookings", create_booking.CreateBookingHandler(logger, bookingRepository, cfg.ServerTimeout, bookerEntityRepository))
-		e.Get("/bookings/my", get_my_booking.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
+			e.Post("/bookings", create_booking.CreateBookingHandler(logger, bookingRepository, cfg.ServerTimeout, bookerEntityRepository))
+			e.Get("/bookings/my", get_my_booking.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
 
-		e.Get("/bookings", get_booking_by_time.GetBookingByTimeHandler(logger, bookingRepository, cfg.ServerTimeout))
-		//TODO доработать метод /bookingsEntity/{id}/bookings. Сделать query паарметры на время бронирвания start time и end time что б не отдавать вообще весь список и разгрузить апи на экране календаря
-		e.Get("/bookingsEntity/{id}/bookings", get_booking_by_booking_entity.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
-		e.Get("/bookings/{id}", get_booking_by_id.GetBookingByIdHandler(logger, bookingRepository, cfg.ServerTimeout))
-		e.Put("/bookings/{id}", update_booking.UpdateBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
-		e.Delete("/bookings/{id}", delete_booking.DeleteBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
+			//TODO Убрать этот метод после добавления времени в query параметры в запросе /bookingsEntity/{id}/bookings
+			e.Post("/bookings/time", get_booking_by_time.GetBookingByTimeHandler(logger, bookingRepository, cfg.ServerTimeout))
+			//TODO доработать метод /bookingsEntity/{id}/bookings. Сделать query паарметры на время бронирвания start time и end time что б не отдавать вообще весь список и разгрузить апи на экране календаря
+			e.Get("/bookingsEntity/{id}/bookings", get_booking_by_booking_entity.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
+			e.Get("/bookings/{id}", get_booking_by_id.GetBookingByIdHandler(logger, bookingRepository, cfg.ServerTimeout))
+			e.Put("/bookings/{id}", update_booking.UpdateBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
+			e.Delete("/bookings/{id}", delete_booking.DeleteBookingHandler(logger, bookingRepository, cfg.ServerTimeout))
+		})
 	})
 
 	logger.Info("Starting HTTP server", slog.String("adress", cfg.Address))

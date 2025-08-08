@@ -3,13 +3,13 @@ package booking_service
 import (
 	"context"
 	"errors"
-	bookingModels "github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking"
-	create_booking_dto "github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking/create_booking"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking/get_booking_by_time"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/create_booking_type"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
+	"github.com/ShlykovPavel/booker_microservice/models/booking"
+	"github.com/ShlykovPavel/booker_microservice/models/booking/create_booking"
+	"github.com/ShlykovPavel/booker_microservice/models/booking/get_booking_by_time"
+	"github.com/ShlykovPavel/booker_microservice/models/booking_type/create_booking_type"
 	"log/slog"
 )
 

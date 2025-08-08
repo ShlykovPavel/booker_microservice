@@ -15,3 +15,7 @@ run_migration_down:
 
 force_migration:
 	migrate -path internal/storage/database/migration -database "postgresql://postgres:mysecretpassword@localhost:5434/booker_service_db?sslmode=disable" force 1
+
+swagger_generation:
+	swag init -g cmd/booking_service/main.go --output docs --parseDependency --parseInternal
+

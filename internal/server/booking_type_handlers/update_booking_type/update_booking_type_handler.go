@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/body"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/create_booking_type"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking_type/update_booking_type"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_type_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
+	"github.com/ShlykovPavel/booker_microservice/models/booking_type/create_booking_type"
+	"github.com/ShlykovPavel/booker_microservice/models/booking_type/update_booking_type"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
 	"log/slog"
@@ -17,6 +17,17 @@ import (
 	"time"
 )
 
+// UpdateBookingTypeHandler godoc
+// @Summary Обновить тип бронирования
+// @Description Обновить тип бронирования
+// @Tags bookingsType
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID типа бронирования"
+// @Param input body update_booking_type.UpdateBookingTypeRequest true "Данные типа бронирования"
+// @Success 200 {object} create_booking_type.ResponseId
+// @Router /bookingsType/{id} [put]
 func UpdateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "internal/server/booking_type_handlers/update_booking_type/update_booking_type_handler.go/UpdateBookingTypeHandler"
@@ -24,7 +35,7 @@ func UpdateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_ty
 
 		BookingTypeID := chi.URLParam(r, "id")
 		if BookingTypeID == "" {
-			log.Error("User ID is empty")
+			log.Error("Booking type ID is empty")
 			resp.RenderResponse(w, r, http.StatusBadRequest, resp.Error("BookingType ID is required"))
 			return
 		}

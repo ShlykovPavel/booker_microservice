@@ -7,11 +7,30 @@ import (
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
+// GetMyBookingsHandler godoc
+// @Summary Получить список бронирований у пользователя
+// @Description Получить список всех объектов бронирований с пагинацией
+// @Tags bookings
+// @Produce json
+// @Security BearerAuth
+// @Param id query string false "Сортировка по id. asc, desc"
+// @Param booking_entity_id query string false "Сортировка по booking_entity_id. asc, desc"
+// @Param start_time query string false "Сортировка по start_time. asc, desc"
+// @Param end_time query string false "Сортировка по end_time. asc, desc"
+// @Param status query string false "Сортировка по status. asc, desc"
+// @Param user_id query string false "Сортировка по user_id. asc, desc"
+// @Param search query string false "Поиск"
+// @Param page query int false "Номер страницы" default(1)
+// @Param limit query int false "Лимит на странице" default(10)
+// @Param offset query int false "Смещение" default(0)
+// @Success 200 {object} bookingModels.BookingsList
+// @Router /bookings/my [get]
 func GetMyBookingsHandler(logger *slog.Logger, bookingDbRepo booking_db.BookingRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.With(slog.String("op", "internal/lib/services/booking_service/get_booking_by_user_id"))

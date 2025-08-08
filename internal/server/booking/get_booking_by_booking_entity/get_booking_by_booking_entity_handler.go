@@ -6,6 +6,7 @@ import (
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
 	"net/http"
@@ -13,6 +14,18 @@ import (
 	"time"
 )
 
+// GetMyBookingsHandler godoc
+// @Summary Получить список бронирований у объекта бронирования
+// @Description Получить список всех бронирований с пагинацией
+// @Tags bookings
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID объекта бронирования"
+// @Param page query int false "Номер страницы" default(1)
+// @Param limit query int false "Лимит на странице" default(10)
+// @Param offset query int false "Смещение" default(0)
+// @Success 200 {object} bookingModels.BookingsList
+// @Router /bookingsEntity/{id}/bookings [get]
 func GetMyBookingsHandler(logger *slog.Logger, bookingDbRepo booking_db.BookingRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.With(slog.String("op", "internal/lib/services/booking_service/get_booking_by_user_id"))

@@ -4,17 +4,29 @@ import (
 	"context"
 	"errors"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/body"
-	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/models/booking/get_booking_by_time"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/api/query_params"
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking"
+	"github.com/ShlykovPavel/booker_microservice/models/booking/get_booking_by_time"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking/get_booking_by_time"
 	"github.com/go-playground/validator"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
+// GetBookingByTimeHandler godoc
+// @Summary Получить объект бронирования по определённому промежутку времени
+// @Description Получить детальную информацию о объекте бронирования
+// @Tags bookings
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param input body get_booking_by_time.GetBookingByTimeRequest true "Данные бронирования"
+// @Success 200 {object} bookingModels.BookingInfo
+// @Router /bookings/time [post]
 func GetBookingByTimeHandler(logger *slog.Logger, bookingRepo booking_db.BookingRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.With(slog.String("op", "internal/server/booking/get_booking_by_time/get_booking_by_time_handler.go/GetBookingByTimeHandler"))
