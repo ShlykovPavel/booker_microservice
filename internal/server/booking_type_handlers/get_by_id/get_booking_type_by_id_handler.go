@@ -6,6 +6,7 @@ import (
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_type_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_type_db"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking_type/get_booking_type_by_id"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
 	"net/http"
@@ -13,6 +14,16 @@ import (
 	"time"
 )
 
+// GetBookingTypeByIdHandler godoc
+// @Summary Получить тип бронирования по ID
+// @Description Получить детальную информацию о типе бронирования
+// @Tags bookingsType
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID типа бронирования"
+// @Success 200 {object} get_booking_type_by_id.GetBookingTypeResponse
+// @Router /bookingsType/{id} [get]
 func GetBookingTypeByIdHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := slog.With(

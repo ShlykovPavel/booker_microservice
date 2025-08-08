@@ -6,6 +6,7 @@ import (
 	resp "github.com/ShlykovPavel/booker_microservice/internal/lib/api/response"
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_entities_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking_entities/get_booking_entity"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
 	"net/http"
@@ -13,6 +14,16 @@ import (
 	"time"
 )
 
+// GetBookingEntityByIdHandler godoc
+// @Summary Получить объект бронирования по ID
+// @Description Получить детальную информацию о объекте бронирования
+// @Tags bookingsEntity
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID объекта бронирования"
+// @Success 200 {object} get_booking_entity.BookingEntityResponse
+// @Router /bookingsEntity/{id} [get]
 func GetBookingEntityByIdHandler(log *slog.Logger, bookingEntityRepository booking_entity_db.BookingEntityRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := slog.With(

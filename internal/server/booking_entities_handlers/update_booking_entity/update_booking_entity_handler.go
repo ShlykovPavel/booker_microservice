@@ -18,9 +18,20 @@ import (
 	"time"
 )
 
+// UpdateBookingEntityHandler godoc
+// @Summary Обновить объект бронирования
+// @Description Обновить объект бронирования
+// @Tags bookingsEntity
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID объекта бронирования"
+// @Param input body create_booking_entity.BookingEntity true "Данные типа бронирования"
+// @Success 200 {object} create_booking_type.ResponseId
+// @Router /bookingsEntity/{id} [put]
 func UpdateBookingEntityHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, bookingEntityRepository booking_entity_db.BookingEntityRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "internal/server/booking_type_handlers/update_booking_entity/update_booking_type_handler.go/UpdateBookingEntityHandler"
+		const op = "internal/server/booking_type_handlers/update_booking_entity/update_booking_entity_handler.go/UpdateBookingEntityHandler"
 		logger := log.With(slog.String("op", op))
 
 		BookingEntityID := chi.URLParam(r, "id")

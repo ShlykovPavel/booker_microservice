@@ -58,7 +58,7 @@ const (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-// @description Bearer JWT token
+// @description Add "Bearer" before token
 func main() {
 	cfg, err := config.LoadConfig(".env")
 	if err != nil {
@@ -91,7 +91,7 @@ func main() {
 	router.Use(middleware.URLFormat)
 	router.Route("/api/v1", func(apiRouter chi.Router) {
 		apiRouter.Get("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL("/api/v1/swagger/doc.json"), // Путь к сгенерированному JSON
+			httpSwagger.URL("/api/v1/swagger/doc.json"),
 		))
 
 		apiRouter.Post("/register", users.CreateUser(logger, userRepository, cfg.ServerTimeout))
@@ -115,7 +115,7 @@ func main() {
 			r.Get("/bookingsEntity", get_booking_entities_list_handler.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
 			r.Put("/bookingsEntity/{id}", update_booking_entity.UpdateBookingEntityHandler(logger, bookerTypeRepository, bookerEntityRepository, cfg.ServerTimeout))
 			r.Delete("/bookingsEntity/{id}", delete_booking_entity.DeleteBookingEntityHandler(logger, bookerEntityRepository, cfg.ServerTimeout))
-			r.Get("/bookingsEntity/{bookingTypeId}", get_entities_by_booking_type.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
+			r.Get("/bookingsType/{id}/bookingsEntity", get_entities_by_booking_type.GetBookingEntitiesListHandler(logger, bookerEntityRepository, cfg.ServerTimeout, companyRepository))
 
 		})
 		apiRouter.Group(func(e chi.Router) {
@@ -124,7 +124,8 @@ func main() {
 			e.Post("/bookings", create_booking.CreateBookingHandler(logger, bookingRepository, cfg.ServerTimeout, bookerEntityRepository))
 			e.Get("/bookings/my", get_my_booking.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
 
-			e.Get("/bookings", get_booking_by_time.GetBookingByTimeHandler(logger, bookingRepository, cfg.ServerTimeout))
+			//TODO Убрать этот метод после добавления времени в query параметры в запросе /bookingsEntity/{id}/bookings
+			e.Post("/bookings/time", get_booking_by_time.GetBookingByTimeHandler(logger, bookingRepository, cfg.ServerTimeout))
 			//TODO доработать метод /bookingsEntity/{id}/bookings. Сделать query паарметры на время бронирвания start time и end time что б не отдавать вообще весь список и разгрузить апи на экране календаря
 			e.Get("/bookingsEntity/{id}/bookings", get_booking_by_booking_entity.GetMyBookingsHandler(logger, bookingRepository, cfg.ServerTimeout))
 			e.Get("/bookings/{id}", get_booking_by_id.GetBookingByIdHandler(logger, bookingRepository, cfg.ServerTimeout))

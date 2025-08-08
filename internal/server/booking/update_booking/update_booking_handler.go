@@ -9,6 +9,8 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/lib/services/booking_service"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
 	"github.com/ShlykovPavel/booker_microservice/models/booking/create_booking"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking/create_booking"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking_type/create_booking_type"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
 	"log/slog"
@@ -17,6 +19,17 @@ import (
 	"time"
 )
 
+// UpdateBookingHandler godoc
+// @Summary Обновить бронирование
+// @Description Обновить бронирование
+// @Tags bookings
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID бронирования"
+// @Param input body create_booking_dto.BookingRequest true "Данные бронирования"
+// @Success 200 {object} create_booking_type.ResponseId
+// @Router /bookings/{id} [put]
 func UpdateBookingHandler(logger *slog.Logger, bookingDbRepo booking_db.BookingRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.With(slog.String("op", "internal/lib/services/booking_service/update_booking"))

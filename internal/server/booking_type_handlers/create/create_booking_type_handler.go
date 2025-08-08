@@ -17,6 +17,16 @@ import (
 	"time"
 )
 
+// CreateBookingTypeHandler godoc
+// @Summary Создать тип бронирования
+// @Description Создать тип бронирования
+// @Tags bookingsType
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param input body create_booking_type.CreateBookingTypeRequest true "Данные типа бронирования"
+// @Success 201 {object} create_booking_type.ResponseId
+// @Router /bookingsType [post]
 func CreateBookingTypeHandler(log *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration, companyDbRepo company_db.CompanyRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := slog.With(

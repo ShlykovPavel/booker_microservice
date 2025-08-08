@@ -13,6 +13,16 @@ import (
 	"time"
 )
 
+// DeleteBookingTypeHandler godoc
+// @Summary Удалить тип бронирования
+// @Description Удалить тип бронирования по ID
+// @Tags bookingsType
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID типа бронирования"
+// @Success 204
+// @Router /bookingsType/{id} [delete]
 func DeleteBookingTypeHandler(logger *slog.Logger, bookingTypeRepository booking_type_db.BookingTypeRepository, timeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.With(slog.String("op", "internal/lib/api/models/booking_type_db/delete_booking_type/delete_booking_type_handler.go/DeleteBookingTypeHandler"))

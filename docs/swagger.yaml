@@ -1,5 +1,158 @@
-basePath: /
+basePath: /api/v1
 definitions:
+  github_com_ShlykovPavel_booker_microservice_models_booking.BookingInfo:
+    properties:
+      booking_entity:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: integer
+      start_time:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking.BookingsList:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingInfo'
+        type: array
+      meta:
+        $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingsListMetaData'
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking.BookingsListMetaData:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_create_booking.BookingRequest:
+    properties:
+      booking_entity_id:
+        type: integer
+      companyId:
+        format: int64
+        type: integer
+      end_time:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_entities_create_booking_entity.BookingEntity:
+    properties:
+      booking_type_id:
+        type: integer
+      description:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: integer
+      status:
+        type: string
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityInfoList:
+    properties:
+      booking_type_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      parent_id:
+        type: integer
+      status:
+        type: string
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityList:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityInfoList'
+        type: array
+      meta:
+        $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityListMetaData'
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityListMetaData:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entity.BookingEntityResponse:
+    properties:
+      booking_type_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      parent_id:
+        type: integer
+      status:
+        type: string
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_type_entities.BookingTypeEntitiesResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_get_booking_by_time.GetBookingByTimeRequest:
+    properties:
+      end_time:
+        type: string
+      start_time:
+        type: string
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.CreateBookingTypeRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId:
+    properties:
+      id:
+        type: integer
+    type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_by_id.GetBookingTypeResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeInfoList:
     properties:
       description:
@@ -29,6 +182,15 @@ definitions:
       total:
         type: integer
     type: object
+  github_com_ShlykovPavel_booker_microservice_models_booking_type_update_booking_type.UpdateBookingTypeRequest:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
 host: localhost:8081
 info:
   contact: {}
@@ -36,15 +198,388 @@ info:
   title: Booker Microservice API
   version: "1.0"
 paths:
+  /bookings:
+    post:
+      consumes:
+      - application/json
+      description: Создать бронирование
+      parameters:
+      - description: Данные бронирования
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_create_booking.BookingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId'
+      security:
+      - BearerAuth: []
+      summary: Создать бронирование
+      tags:
+      - bookings
+  /bookings/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить бронирование по ID
+      parameters:
+      - description: ID бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Удалить бронирование
+      tags:
+      - bookings
+    get:
+      consumes:
+      - application/json
+      description: Получить детальную информацию о бронировании
+      parameters:
+      - description: ID бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingInfo'
+      security:
+      - BearerAuth: []
+      summary: Получить бронирование по ID
+      tags:
+      - bookings
+    put:
+      consumes:
+      - application/json
+      description: Обновить бронирование
+      parameters:
+      - description: ID бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные бронирования
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_create_booking.BookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId'
+      security:
+      - BearerAuth: []
+      summary: Обновить бронирование
+      tags:
+      - bookings
+  /bookings/my:
+    get:
+      description: Получить список всех объектов бронирований с пагинацией
+      parameters:
+      - description: Сортировка по id. asc, desc
+        in: query
+        name: id
+        type: string
+      - description: Сортировка по booking_entity_id. asc, desc
+        in: query
+        name: booking_entity_id
+        type: string
+      - description: Сортировка по start_time. asc, desc
+        in: query
+        name: start_time
+        type: string
+      - description: Сортировка по end_time. asc, desc
+        in: query
+        name: end_time
+        type: string
+      - description: Сортировка по status. asc, desc
+        in: query
+        name: status
+        type: string
+      - description: Сортировка по user_id. asc, desc
+        in: query
+        name: user_id
+        type: string
+      - description: Поиск
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Лимит на странице
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Смещение
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingsList'
+      security:
+      - BearerAuth: []
+      summary: Получить список бронирований у пользователя
+      tags:
+      - bookings
+  /bookings/time:
+    post:
+      consumes:
+      - application/json
+      description: Получить детальную информацию о объекте бронирования
+      parameters:
+      - description: Данные бронирования
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_get_booking_by_time.GetBookingByTimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingInfo'
+      security:
+      - BearerAuth: []
+      summary: Получить объект бронирования по определённому промежутку времени
+      tags:
+      - bookings
+  /bookingsEntity:
+    get:
+      description: Получить список всех объектов бронирований с пагинацией
+      parameters:
+      - description: Сортировка по id. asc, desc
+        in: query
+        name: id
+        type: string
+      - description: Сортировка по booking_type_id. asc, desc
+        in: query
+        name: booking_type_id
+        type: string
+      - description: Сортировка по name. asc, desc
+        in: query
+        name: name
+        type: string
+      - description: Сортировка по description. asc, desc
+        in: query
+        name: description
+        type: string
+      - description: Сортировка по status. asc, desc
+        in: query
+        name: status
+        type: string
+      - description: Поиск
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Лимит на странице
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Смещение
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityList'
+      security:
+      - BearerAuth: []
+      summary: Получить список объектов бронирований
+      tags:
+      - bookingsEntity
+    post:
+      consumes:
+      - application/json
+      description: Создать объект бронирования
+      parameters:
+      - description: Данные объекта бронирования
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_create_booking_entity.BookingEntity'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId'
+      security:
+      - BearerAuth: []
+      summary: Создать объект бронирования
+      tags:
+      - bookingsEntity
+  /bookingsEntity/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить объект бронирования по ID
+      parameters:
+      - description: ID объекта бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Удалить объект бронирования
+      tags:
+      - bookingsEntity
+    get:
+      consumes:
+      - application/json
+      description: Получить детальную информацию о объекте бронирования
+      parameters:
+      - description: ID объекта бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entity.BookingEntityResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить объект бронирования по ID
+      tags:
+      - bookingsEntity
+    put:
+      consumes:
+      - application/json
+      description: Обновить объект бронирования
+      parameters:
+      - description: ID объекта бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные типа бронирования
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_create_booking_entity.BookingEntity'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId'
+      security:
+      - BearerAuth: []
+      summary: Обновить объект бронирования
+      tags:
+      - bookingsEntity
+  /bookingsEntity/{id}/bookings:
+    get:
+      description: Получить список всех бронирований с пагинацией
+      parameters:
+      - description: ID объекта бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Лимит на странице
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Смещение
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingsList'
+      security:
+      - BearerAuth: []
+      summary: Получить список бронирований у объекта бронирования
+      tags:
+      - bookings
   /bookingsType:
     get:
       description: Получить список всех типов бронирований с пагинацией
       parameters:
-      - default: '"Bearer <token>"'
-        description: JWT токен
-        in: header
-        name: Authorization
-        required: true
+      - description: Сортировка по id. asc, desc
+        in: query
+        name: id
+        type: string
+      - description: Сортировка по name. asc, desc
+        in: query
+        name: name
+        type: string
+      - description: Сортировка по description. asc, desc
+        in: query
+        name: description
+        type: string
+      - description: Поиск
+        in: query
+        name: search
         type: string
       - default: 1
         description: Номер страницы
@@ -68,12 +603,144 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeList'
+      security:
+      - BearerAuth: []
       summary: Получить список типов бронирований
       tags:
       - bookingsType
+    post:
+      consumes:
+      - application/json
+      description: Создать тип бронирования
+      parameters:
+      - description: Данные типа бронирования
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.CreateBookingTypeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId'
+      security:
+      - BearerAuth: []
+      summary: Создать тип бронирования
+      tags:
+      - bookingsType
+  /bookingsType/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить тип бронирования по ID
+      parameters:
+      - description: ID типа бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Удалить тип бронирования
+      tags:
+      - bookingsType
+    get:
+      consumes:
+      - application/json
+      description: Получить детальную информацию о типе бронирования
+      parameters:
+      - description: ID типа бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_by_id.GetBookingTypeResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить тип бронирования по ID
+      tags:
+      - bookingsType
+    put:
+      consumes:
+      - application/json
+      description: Обновить тип бронирования
+      parameters:
+      - description: ID типа бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные типа бронирования
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_update_booking_type.UpdateBookingTypeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId'
+      security:
+      - BearerAuth: []
+      summary: Обновить тип бронирования
+      tags:
+      - bookingsType
+  /bookingsType/{id}/bookingsEntity:
+    get:
+      description: Получить список всех объектов бронирований с пагинацией
+      parameters:
+      - description: ID типа бронирования
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Лимит на странице
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Смещение
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_type_entities.BookingTypeEntitiesResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить список объектов бронирований у определённого типа бронирования
+      tags:
+      - bookingsEntity
 securityDefinitions:
   BearerAuth:
-    description: Bearer JWT token
+    description: Add "Bearer" before token
     in: header
     name: Authorization
     type: apiKey

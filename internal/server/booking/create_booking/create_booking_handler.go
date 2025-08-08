@@ -10,12 +10,24 @@ import (
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_db"
 	"github.com/ShlykovPavel/booker_microservice/internal/storage/database/repositories/booking_entity_db"
 	"github.com/ShlykovPavel/booker_microservice/models/booking/create_booking"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking/create_booking"
+	_ "github.com/ShlykovPavel/booker_microservice/models/booking_type/create_booking_type"
 	"github.com/go-playground/validator"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
+// CreateBookingHandler godoc
+// @Summary Создать бронирование
+// @Description Создать бронирование
+// @Tags bookings
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param input body create_booking_dto.BookingRequest true "Данные бронирования"
+// @Success 201 {object} create_booking_type.ResponseId
+// @Router /bookings [post]
 func CreateBookingHandler(logger *slog.Logger, bookingDbRepo booking_db.BookingRepository, timeout time.Duration, bookingEntityDBRepo booking_entity_db.BookingEntityRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.With(slog.String("op", "internal/server/booking/create_booking/create_booking_handler.go/CreateBookingHandler"))

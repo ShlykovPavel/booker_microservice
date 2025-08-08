@@ -20,7 +20,11 @@ import (
 // @Description Получить список всех типов бронирований с пагинацией
 // @Tags bookingsType
 // @Produce json
-// @Param Authorization header string true "JWT токен" default("Bearer <token>")
+// @Security BearerAuth
+// @Param id query string false "Сортировка по id. asc, desc"
+// @Param name query string false "Сортировка по name. asc, desc"
+// @Param description query string false "Сортировка по description. asc, desc"
+// @Param search query string false "Поиск"
 // @Param page query int false "Номер страницы" default(1)
 // @Param limit query int false "Лимит на странице" default(10)
 // @Param offset query int false "Смещение" default(0)

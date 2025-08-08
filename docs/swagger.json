@@ -7,10 +7,585 @@
         "version": "1.0"
     },
     "host": "localhost:8081",
-    "basePath": "/",
+    "basePath": "/api/v1",
     "paths": {
+        "/bookings": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создать бронирование",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Создать бронирование",
+                "parameters": [
+                    {
+                        "description": "Данные бронирования",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_create_booking.BookingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/my": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить список всех объектов бронирований с пагинацией",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Получить список бронирований у пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Сортировка по id. asc, desc",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по booking_entity_id. asc, desc",
+                        "name": "booking_entity_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по start_time. asc, desc",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по end_time. asc, desc",
+                        "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по status. asc, desc",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по user_id. asc, desc",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Лимит на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Смещение",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingsList"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/time": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить детальную информацию о объекте бронирования",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Получить объект бронирования по определённому промежутку времени",
+                "parameters": [
+                    {
+                        "description": "Данные бронирования",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_get_booking_by_time.GetBookingByTimeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить детальную информацию о бронировании",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Получить бронирование по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingInfo"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновить бронирование",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Обновить бронирование",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные бронирования",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_create_booking.BookingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удалить бронирование по ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Удалить бронирование",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/bookingsEntity": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить список всех объектов бронирований с пагинацией",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsEntity"
+                ],
+                "summary": "Получить список объектов бронирований",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Сортировка по id. asc, desc",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по booking_type_id. asc, desc",
+                        "name": "booking_type_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по name. asc, desc",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по description. asc, desc",
+                        "name": "description",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по status. asc, desc",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Лимит на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Смещение",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создать объект бронирования",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsEntity"
+                ],
+                "summary": "Создать объект бронирования",
+                "parameters": [
+                    {
+                        "description": "Данные объекта бронирования",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_create_booking_entity.BookingEntity"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookingsEntity/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить детальную информацию о объекте бронирования",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsEntity"
+                ],
+                "summary": "Получить объект бронирования по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID объекта бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entity.BookingEntityResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновить объект бронирования",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsEntity"
+                ],
+                "summary": "Обновить объект бронирования",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID объекта бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные типа бронирования",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_create_booking_entity.BookingEntity"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удалить объект бронирования по ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsEntity"
+                ],
+                "summary": "Удалить объект бронирования",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID объекта бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/bookingsEntity/{id}/bookings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить список всех бронирований с пагинацией",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Получить список бронирований у объекта бронирования",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID объекта бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Лимит на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Смещение",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingsList"
+                        }
+                    }
+                }
+            }
+        },
         "/bookingsType": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Получить список всех типов бронирований с пагинацией",
                 "produces": [
                     "application/json"
@@ -22,11 +597,27 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "default": "\"Bearer \u003ctoken\u003e\"",
-                        "description": "JWT токен",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "description": "Сортировка по id. asc, desc",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по name. asc, desc",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по description. asc, desc",
+                        "name": "description",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск",
+                        "name": "search",
+                        "in": "query"
                     },
                     {
                         "type": "integer",
@@ -58,10 +649,451 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создать тип бронирования",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsType"
+                ],
+                "summary": "Создать тип бронирования",
+                "parameters": [
+                    {
+                        "description": "Данные типа бронирования",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.CreateBookingTypeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookingsType/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить детальную информацию о типе бронирования",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsType"
+                ],
+                "summary": "Получить тип бронирования по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID типа бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_by_id.GetBookingTypeResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновить тип бронирования",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsType"
+                ],
+                "summary": "Обновить тип бронирования",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID типа бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные типа бронирования",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_update_booking_type.UpdateBookingTypeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удалить тип бронирования по ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsType"
+                ],
+                "summary": "Удалить тип бронирования",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID типа бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/bookingsType/{id}/bookingsEntity": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить список всех объектов бронирований с пагинацией",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookingsEntity"
+                ],
+                "summary": "Получить список объектов бронирований у определённого типа бронирования",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID типа бронирования",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Лимит на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Смещение",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_type_entities.BookingTypeEntitiesResponse"
+                        }
+                    }
+                }
             }
         }
     },
     "definitions": {
+        "github_com_ShlykovPavel_booker_microservice_models_booking.BookingInfo": {
+            "type": "object",
+            "properties": {
+                "booking_entity": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking.BookingsList": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingInfo"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking.BookingsListMetaData"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking.BookingsListMetaData": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_create_booking.BookingRequest": {
+            "type": "object",
+            "properties": {
+                "booking_entity_id": {
+                    "type": "integer"
+                },
+                "companyId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_entities_create_booking_entity.BookingEntity": {
+            "type": "object",
+            "properties": {
+                "booking_type_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityInfoList": {
+            "type": "object",
+            "properties": {
+                "booking_type_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityList": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityInfoList"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityListMetaData"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entities_list.BookingEntityListMetaData": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_entity.BookingEntityResponse": {
+            "type": "object",
+            "properties": {
+                "booking_type_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_entities_get_booking_type_entities.BookingTypeEntitiesResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_get_booking_by_time.GetBookingByTimeRequest": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.CreateBookingTypeRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_type_create_booking_type.ResponseId": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_by_id.GetBookingTypeResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_ShlykovPavel_booker_microservice_models_booking_type_get_booking_type_list.BookingTypeInfoList": {
             "type": "object",
             "properties": {
@@ -106,11 +1138,25 @@
                     "type": "integer"
                 }
             }
+        },
+        "github_com_ShlykovPavel_booker_microservice_models_booking_type_update_booking_type.UpdateBookingTypeRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "description": "Bearer JWT token",
+            "description": "Add \"Bearer\" before token",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
